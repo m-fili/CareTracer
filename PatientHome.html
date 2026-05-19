@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>CareTracer — Home</title>
+<meta name="viewport" content="width=1440" />
+<style>
+  :root {
+    --teal: #0E5C6F;
+    --teal-soft: #B3D9DF;
+    --warm-white: #FBFAF7;
+    --surface: #FFFFFF;
+    --surface-alt: #F4F6F8;
+    --border: #E5EAEE;
+    --text: #1B2330;
+    --text-2: #6B7785;
+    --good: #6FA88D;
+    --caution: #D49A4E;
+    --track-cog: #4F90B8;
+    --track-gly: #E8985F;
+    --track-cv:  #D55D5D;
+    --track-kid: #8B7BB8;
+
+    --card-shadow: 0 1px 2px rgba(27,35,48,0.04), 0 2px 4px rgba(27,35,48,0.04);
+    --card-pad: 24px;
+    --card-radius: 12px;
+    --row-gap: 20px;
+    --page-pad-x: 32px;
+    --page-pad-y: 24px;
+  }
+
+  /* Density tweak */
+  body.density-spacious {
+    --card-pad: 32px;
+    --row-gap: 28px;
+    --page-pad-x: 40px;
+    --page-pad-y: 32px;
+  }
+  body.density-compact {
+    --card-pad: 18px;
+    --row-gap: 14px;
+    --page-pad-x: 24px;
+    --page-pad-y: 18px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--warm-white);
+    color: var(--text);
+    font: 400 16px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "tnum";
+  }
+  a { color: var(--teal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ───────── Shell ───────── */
+  .shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  /* ───────── Sidebar ───────── */
+  .sidebar {
+    background: var(--surface-alt);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  .wordmark {
+    padding: 24px 24px 28px;
+    color: var(--teal);
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .wordmark .mark {
+    width: 22px; height: 22px; flex: none;
+  }
+  .nav { display: flex; flex-direction: column; padding: 0 12px; gap: 2px; }
+  .nav a {
+    display: flex; align-items: center; gap: 12px;
+    height: 44px; padding: 0 12px;
+    color: var(--text);
+    font-size: 16px;
+    border-radius: 6px;
+    position: relative;
+  }
+  .nav a:hover { background: rgba(179, 217, 223, 0.25); text-decoration: none; }
+  .nav a svg { width: 16px; height: 16px; color: var(--text-2); flex: none; }
+  .nav a.is-selected {
+    background: rgba(179, 217, 223, 0.30);
+    color: var(--teal);
+    font-weight: 500;
+  }
+  .nav a.is-selected svg { color: var(--teal); }
+  .nav a.is-selected::before {
+    content: "";
+    position: absolute; left: -12px; top: 8px; bottom: 8px;
+    width: 3px; background: var(--teal); border-radius: 0 2px 2px 0;
+  }
+
+  /* ───────── Top bar ───────── */
+  .main { display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 64px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--page-pad-x);
+  }
+  .topbar h1 { margin: 0; font-size: 20px; font-weight: 600; color: var(--text); }
+  .topbar-right { display: flex; align-items: center; gap: 24px; }
+  .last-updated { font-size: 14px; color: var(--text-2); }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--teal); color: #fff;
+    font-size: 14px; font-weight: 600;
+    display: grid; place-items: center;
+    letter-spacing: 0.02em;
+  }
+  .gear { width: 20px; height: 20px; color: var(--text-2); cursor: pointer; }
+
+  /* ───────── Content ───────── */
+  .content {
+    padding: var(--page-pad-y) var(--page-pad-x);
+    display: flex; flex-direction: column;
+    gap: var(--row-gap);
+  }
+  .greeting h2 {
+    margin: 0 0 6px;
+    font-size: 28px; font-weight: 600; color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .greeting p {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-2);
+  }
+
+  /* ───────── Cards ───────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    padding: var(--card-pad);
+  }
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 4px;
+  }
+  .card-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 18px; font-weight: 600; color: var(--text);
+  }
+  .card-title svg { color: var(--teal); }
+  .card-sub {
+    font-size: 14px; color: var(--text-2);
+    margin: 0 0 16px;
+  }
+  .card-link {
+    font-size: 14px; font-weight: 500; color: var(--teal);
+    white-space: nowrap;
+  }
+
+  /* ───────── Rows / Grids ───────── */
+  .row {
+    display: grid;
+    gap: var(--row-gap);
+  }
+  .row-60-40 { grid-template-columns: 3fr 2fr; }
+  .row-thirds { grid-template-columns: 1fr 1fr 1fr; }
+  .row-50-50 { grid-template-columns: 1fr 1fr; }
+
+  /* ───────── Care Compass ───────── */
+  .compass-list { display: flex; flex-direction: column; }
+  .compass-item {
+    padding: 16px 0;
+    min-height: 88px;
+    border-top: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .compass-item:first-child { border-top: none; margin-top: 4px; padding-top: 0; }
+  .compass-row1 {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px;
+  }
+  .compass-row1 .name { font-size: 16px; font-weight: 600; color: var(--text); }
+  .pill {
+    font-size: 12px; font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+  .pill-overdue { background: rgba(212, 154, 78, 0.20); color: #8A5E2D; }
+  .pill-suggested { background: var(--border); color: var(--text-2); }
+  .pill-coming-up { background: rgba(179, 217, 223, 0.40); color: var(--teal); }
+  .compass-desc { font-size: 14px; color: var(--text); line-height: 1.5; }
+  .compass-src { font-size: 12px; color: var(--text-2); }
+
+  /* ───────── Map preview ───────── */
+  .map-card { display: flex; flex-direction: column; }
+  .map-svg-wrap {
+    width: 100%;
+    height: 220px;
+    margin-top: 4px;
+  }
+  .map-svg { width: 100%; height: 100%; display: block; }
+  .map-footer {
+    display: flex; justify-content: flex-end;
+    margin-top: 12px;
+  }
+  .btn-primary {
+    background: var(--teal); color: #fff;
+    border: 1px solid var(--teal);
+    font-size: 14px; font-weight: 600;
+    padding: 10px 20px; border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary:hover { background: #0a4c5c; }
+  .btn-outline {
+    background: transparent; color: var(--teal);
+    border: 1px solid var(--teal);
+    font-size: 14px; font-weight: 600;
+    padding: 10px 20px; border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-outline:hover { background: rgba(179, 217, 223, 0.25); }
+
+  /* ───────── Score cards ───────── */
+  .score-card {
+    min-height: 160px;
+    display: flex; flex-direction: column;
+  }
+  .score-label {
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px; color: var(--text-2); font-weight: 500;
+  }
+  .score-help {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px; height: 18px;
+    margin-left: 6px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-2);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: help;
+    padding: 0;
+    vertical-align: middle;
+  }
+  .score-help:hover {
+    background: var(--surface-alt);
+    color: var(--text);
+    border-color: var(--text-2);
+  }
+  .score-num-row {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-top: 8px;
+  }
+  .score-num {
+    font-size: 32px; font-weight: 600; color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .score-trend {
+    font-size: 18px; font-weight: 600;
+    line-height: 1;
+    display: inline-flex; align-items: center;
+  }
+  .score-trend.up { color: var(--good); }
+  .score-trend.down { color: var(--caution); }
+  .score-trend.flat { color: var(--text-2); }
+  .score-status {
+    font-size: 14px; color: var(--text);
+    margin-top: 6px;
+  }
+  .score-spark {
+    margin-top: auto;
+    padding-top: 12px;
+  }
+  .score-spark svg { display: block; }
+  .score-updated {
+    font-size: 12px; color: var(--text-2);
+    margin-top: 8px;
+  }
+
+  /* ───────── Recent activity ───────── */
+  .activity-list { display: flex; flex-direction: column; }
+  .activity-row {
+    height: 56px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 110px 1fr auto;
+    align-items: center;
+    gap: 16px;
+  }
+  .activity-row:first-child { margin-top: 4px; }
+  .activity-date { font-size: 14px; color: var(--text-2); }
+  .activity-desc { font-size: 16px; color: var(--text); }
+  .activity-link { font-size: 14px; color: var(--teal); font-weight: 500; }
+
+  /* ───────── Companion ───────── */
+  .companion-body {
+    font-size: 14px;
+    color: var(--text);
+    margin: 6px 0 16px;
+    line-height: 1.55;
+  }
+  .chip-list { display: flex; flex-direction: column; gap: 8px; }
+  .chip {
+    display: inline-flex; align-self: flex-start;
+    font-size: 14px;
+    background: rgba(179, 217, 223, 0.40);
+    color: var(--teal);
+    padding: 8px 14px;
+    border-radius: 16px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1.3;
+    text-align: left;
+  }
+  .chip:hover { background: rgba(179, 217, 223, 0.65); }
+  .companion-foot {
+    display: flex; justify-content: flex-end;
+    margin-top: 16px;
+  }
+
+</style>
+</head>
+<body class="layout-spec density-comfortable">
+
+  <div class="shell" data-screen-label="Home">
+    <!-- ───────── Sidebar ───────── -->
+    <aside class="sidebar">
+      <div class="wordmark">
+        <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 3v18M3 12h18"></path>
+        </svg>
+        CareTracer
+      </div>
+      <nav class="nav" aria-label="Primary">
+        <a href="#" class="is-selected" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"></path><path d="M5 9v12h14V9"></path></svg>
+          Home
+        </a>
+        <a href="Health Map.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path d="M6 8v4a4 4 0 0 0 4 4h4"></path></svg>
+          My Health Map
+        </a>
+        <a href="#scores">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-9"></path></svg>
+          Health Scores
+        </a>
+        <a href="#companion">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"></path></svg>
+          Companion
+        </a>
+        <a href="#compass">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M15 9l-2 5-5 2 2-5 5-2z"></path></svg>
+          Care Compass
+        </a>
+        <a href="#partners">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="10" r="2"></circle><path d="M3 20c0-3 3-5 6-5s6 2 6 5"></path><path d="M15 20c0-2 2-3.5 4-3.5s2 1 2 2"></path></svg>
+          Care Partners
+        </a>
+        <a href="#share">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v14"></path></svg>
+          Share with Doctor
+        </a>
+        <a href="#settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+          Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- ───────── Main ───────── -->
+    <div class="main">
+      <header class="topbar">
+        <h1>Home</h1>
+        <div class="topbar-right">
+          <span class="last-updated">Last updated May 12, 2026</span>
+          <div class="avatar" aria-label="John Doe">JD</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Greeting -->
+        <section class="greeting">
+          <h2>Hello, John.</h2>
+          <p>Your record covers 17 years across 2 health systems and 4 active conditions.</p>
+          <p style="font-size: 12px; color: var(--text-2); margin-top: 6px; font-style: italic;">
+            This is a sample patient record for demonstration only. All data is synthetic.
+          </p>
+        </section>
+
+        <!-- Row 1 = Care Compass 60% / Map preview 40% -->
+        <section class="row row-60-40">
+          <!-- Care Compass -->
+          <article class="card" id="compass">
+            <div class="card-head">
+              <div class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <polygon points="15,9 13,14 8,16 10,11" fill="currentColor" stroke="none"></polygon>
+                </svg>
+                Care Compass
+              </div>
+              <a href="#" class="card-link">View all 5 items →</a>
+            </div>
+            <p class="card-sub">Items you may want to discuss with your care team</p>
+            <div class="compass-list">
+              <div class="compass-item">
+                <div class="compass-row1">
+                  <span class="name">Diabetic eye exam</span>
+                  <span class="pill pill-overdue">Overdue</span>
+                </div>
+                <div class="compass-desc">Last completed April 2024. Most guidelines recommend annually for people with diabetes.</div>
+                <div class="compass-src">Source: ADA Standards of Care in Diabetes — 2026, Section 12</div>
+              </div>
+              <div class="compass-item">
+                <div class="compass-row1">
+                  <span class="name">HbA1c recheck</span>
+                  <span class="pill pill-coming-up">Coming up</span>
+                </div>
+                <div class="compass-desc">Your last HbA1c was in April 2026 and was at target. Most guidelines suggest rechecking every 3 to 6 months — you're approaching the next checkpoint.</div>
+                <div class="compass-src">Source: ADA Standards of Care in Diabetes — 2026, Section 6 (Glycemic Targets)</div>
+              </div>
+              <div class="compass-item">
+                <div class="compass-row1">
+                  <span class="name">Memory care planning discussion</span>
+                  <span class="pill pill-suggested">Suggested</span>
+                </div>
+                <div class="compass-desc">Your neurology note from March 10, 2026 recorded that an advance-care-planning discussion would be appropriate at your next visit. Worth preparing a list of questions in advance.</div>
+                <div class="compass-src">Source: AAN Practice Guideline Update on Mild Cognitive Impairment (Petersen et al., 2018)</div>
+                <div class="compass-src">Surfaced from your neurology note · March 10, 2026</div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Map preview -->
+          <article class="card map-card" id="health-map">
+            <div class="card-head">
+              <div class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="6" cy="6" r="2"></circle>
+                  <circle cx="18" cy="18" r="2"></circle>
+                  <path d="M6 8v4a4 4 0 0 0 4 4h4"></path>
+                </svg>
+                Your Health Map
+              </div>
+            </div>
+            <p class="card-sub">17 years across 4 conditions, with cross-condition links visible at a glance.</p>
+            <div class="map-svg-wrap">
+              <svg class="map-svg" viewBox="0 0 460 220" preserveAspectRatio="none" aria-label="Longitudinal health map preview">
+                <!-- Tracks -->
+                <line x1="24"  y1="32"  x2="436" y2="32"  stroke="var(--track-cog)" stroke-width="4" stroke-linecap="round"/>
+                <line x1="24"  y1="68"  x2="436" y2="68"  stroke="var(--track-gly)" stroke-width="4" stroke-linecap="round"/>
+                <line x1="24"  y1="104" x2="436" y2="104" stroke="var(--track-cv)"  stroke-width="4" stroke-linecap="round"/>
+                <line x1="24"  y1="140" x2="436" y2="140" stroke="var(--track-kid)" stroke-width="4" stroke-linecap="round"/>
+
+                <!-- Track labels -->
+                <text x="24" y="22"  font-size="11" fill="var(--text-2)" font-family="Inter, sans-serif">Cognitive</text>
+                <text x="24" y="58"  font-size="11" fill="var(--text-2)" font-family="Inter, sans-serif">Glycemic</text>
+                <text x="24" y="94"  font-size="11" fill="var(--text-2)" font-family="Inter, sans-serif">Cardiovascular</text>
+                <text x="24" y="130" font-size="11" fill="var(--text-2)" font-family="Inter, sans-serif">Kidney</text>
+
+                <!-- Cognitive stations -->
+                <circle cx="78"  cy="32" r="5" fill="var(--track-cog)"/>
+                <circle cx="180" cy="32" r="5" fill="var(--track-cog)"/>
+                <circle cx="280" cy="32" r="5" fill="var(--track-cog)"/>
+                <circle cx="390" cy="32" r="5" fill="var(--track-cog)"/>
+
+                <!-- Glycemic stations -->
+                <circle cx="58"  cy="68" r="5" fill="var(--track-gly)"/>
+                <circle cx="150" cy="68" r="5" fill="var(--track-gly)"/>
+                <circle cx="230" cy="68" r="5" fill="var(--track-gly)"/>
+                <circle cx="330" cy="68" r="5" fill="var(--track-gly)"/>
+                <circle cx="410" cy="68" r="5" fill="var(--track-gly)"/>
+
+                <!-- Cardiovascular stations -->
+                <circle cx="92"  cy="104" r="5" fill="var(--track-cv)"/>
+                <circle cx="208" cy="104" r="5" fill="var(--track-cv)"/>
+                <circle cx="358" cy="104" r="5" fill="var(--track-cv)"/>
+                <circle cx="420" cy="104" r="5" fill="var(--track-cv)"/>
+
+                <!-- Kidney stations -->
+                <circle cx="118" cy="140" r="5" fill="var(--track-kid)"/>
+                <circle cx="248" cy="140" r="5" fill="var(--track-kid)"/>
+                <circle cx="350" cy="140" r="5" fill="var(--track-kid)"/>
+                <circle cx="425" cy="140" r="5" fill="var(--track-kid)"/>
+
+                <!-- Transfer 1: Cognitive ↔ Cardiovascular -->
+                <line x1="280" y1="32" x2="280" y2="104" stroke="#1B2330" stroke-width="1" opacity="0.20"/>
+                <circle cx="280" cy="32"  r="7" fill="#FFFFFF" stroke="var(--track-cog)" stroke-width="2.5"/>
+                <circle cx="280" cy="32"  r="3" fill="var(--track-cog)"/>
+                <circle cx="280" cy="104" r="7" fill="#FFFFFF" stroke="var(--track-cv)" stroke-width="2.5"/>
+                <circle cx="280" cy="104" r="3" fill="var(--track-cv)"/>
+
+                <!-- Transfer 2: Glycemic ↔ Cardiovascular -->
+                <line x1="358" y1="68" x2="358" y2="104" stroke="#1B2330" stroke-width="1" opacity="0.20"/>
+                <circle cx="358" cy="68"  r="7" fill="#FFFFFF" stroke="var(--track-gly)" stroke-width="2.5"/>
+                <circle cx="358" cy="68"  r="3" fill="var(--track-gly)"/>
+                <circle cx="358" cy="104" r="7" fill="#FFFFFF" stroke="var(--track-cv)" stroke-width="2.5"/>
+                <circle cx="358" cy="104" r="3" fill="var(--track-cv)"/>
+
+                <!-- Year axis -->
+                <text x="24"  y="185" font-size="11" fill="var(--text-2)" font-family="Inter, sans-serif">2009</text>
+                <text x="125" y="185" font-size="11" fill="var(--text-2)" font-family="Inter, sans-serif">2015</text>
+                <text x="225" y="185" font-size="11" fill="var(--text-2)" font-family="Inter, sans-serif">2020</text>
+                <text x="335" y="185" font-size="11" fill="var(--text-2)" font-family="Inter, sans-serif">2024</text>
+                <text x="415" y="185" font-size="11" fill="var(--text-2)" font-family="Inter, sans-serif">2026</text>
+              </svg>
+            </div>
+            <div class="map-footer">
+              <a class="btn-primary" href="Health Map.html" role="button" style="text-decoration: none; display: inline-block;">Open Health Map</a>
+            </div>
+          </article>
+        </section>
+
+        <!-- Row 2: Score cards -->
+        <section class="row row-thirds" id="scores">
+          <!-- A1c -->
+          <article class="card score-card">
+            <span class="score-label">
+              Blood Sugar (A1c)
+              <button class="score-help" type="button" aria-label="What is this score?" title="HbA1c reflects your average blood sugar over the past 2 to 3 months. The treatment target for most people with diabetes is below 7%.">?</button>
+            </span>
+            <div class="score-num-row">
+              <span class="score-num">7.0%</span>
+              <span class="score-trend up" aria-label="Improving">▲</span>
+            </div>
+            <span class="score-status">At target</span>
+            <div class="score-spark">
+              <svg width="100%" height="32" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+                <rect x="0" y="23" width="120" height="9" fill="#6FA88D" opacity="0.12"></rect>
+                <polyline fill="none" stroke="var(--track-gly)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  points="4,4 26,8 48,14 70,20 92,23 116,25"/>
+                <circle cx="116" cy="25" r="3" fill="var(--track-gly)"/>
+              </svg>
+            </div>
+            <span class="score-updated">Updated April 21, 2026</span>
+          </article>
+          <!-- MoCA -->
+          <article class="card score-card">
+            <span class="score-label">
+              Memory (MoCA)
+              <button class="score-help" type="button" aria-label="What is this score?" title="The Montreal Cognitive Assessment screens for mild cognitive impairment. Scores from 26 to 30 are typically considered normal; lower scores warrant clinical interpretation.">?</button>
+            </span>
+            <div class="score-num-row">
+              <span class="score-num">22 / 30</span>
+              <span class="score-trend down" aria-label="Declining">▼</span>
+            </div>
+            <span class="score-status">Mild Cognitive Impairment, slow progression</span>
+            <div class="score-spark">
+              <svg width="100%" height="32" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+                <rect x="0" y="0" width="120" height="10" fill="#6FA88D" opacity="0.12"></rect>
+                <polyline fill="none" stroke="var(--track-cog)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  points="4,10 60,18 116,26"/>
+                <circle cx="116" cy="26" r="3" fill="var(--track-cog)"/>
+              </svg>
+            </div>
+            <span class="score-updated">Updated March 10, 2026</span>
+          </article>
+          <!-- Kidney (eGFR primary, KDIGO composite in status) -->
+          <article class="card score-card">
+            <span class="score-label">
+              Kidney Function (eGFR)
+              <button class="score-help" type="button" aria-label="What is this score?" title="Estimated glomerular filtration rate (eGFR) measures how well your kidneys filter waste. CareTracer combines eGFR with a urine protein measure (UACR) to assign a KDIGO Stage. G2 A1 indicates mild loss of filtration with protein in the normal range.">?</button>
+            </span>
+            <div class="score-num-row">
+              <span class="score-num">63</span>
+              <span class="score-trend flat" aria-label="Stable">—</span>
+            </div>
+            <span class="score-status">KDIGO Stage G2 A1 · stable · UACR 26 mg/g</span>
+            <div class="score-spark">
+              <svg width="100%" height="32" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+                <rect x="0" y="12" width="120" height="16" fill="#D49A4E" opacity="0.12"></rect>
+                <polyline fill="none" stroke="var(--track-kid)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  points="4,17 30,16 58,17 86,18 116,17"/>
+                <circle cx="116" cy="17" r="3" fill="var(--track-kid)"/>
+              </svg>
+            </div>
+            <span class="score-updated">Updated April 21, 2026</span>
+          </article>
+        </section>
+
+        <!-- Row 3: Activity 60% / Companion 40% -->
+        <section class="row row-60-40">
+          <article class="card">
+            <div class="card-head">
+              <div class="card-title">Recent activity in your record</div>
+            </div>
+            <div class="activity-list">
+              <div class="activity-row">
+                <span class="activity-date">Apr 21, 2026</span>
+                <span class="activity-desc">Primary care visit with new PCP</span>
+                <a href="#" class="activity-link">View →</a>
+              </div>
+              <div class="activity-row">
+                <span class="activity-date">Apr 21, 2026</span>
+                <span class="activity-desc">Lab results: HbA1c, eGFR, lipid panel</span>
+                <a href="#" class="activity-link">View →</a>
+              </div>
+              <div class="activity-row">
+                <span class="activity-date">Mar 10, 2026</span>
+                <span class="activity-desc">Neurology telehealth (MoCA recorded 22/30)</span>
+                <a href="#" class="activity-link">View →</a>
+              </div>
+              <div class="activity-row">
+                <span class="activity-date">Feb 8, 2026</span>
+                <span class="activity-desc">Falls-risk assessment with physical therapy</span>
+                <a href="#" class="activity-link">View →</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="card" id="companion">
+            <div class="card-head">
+              <div class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"></path>
+                </svg>
+                Companion
+              </div>
+            </div>
+            <p class="companion-body">Ask any question about your health record. The Companion explains in plain language and shows you the source.</p>
+            <div class="chip-list">
+              <button class="chip" type="button">Help me understand my recent memory tests.</button>
+              <button class="chip" type="button">Why did my blood sugar improve?</button>
+              <button class="chip" type="button">Explain "small-vessel disease" in plain language.</button>
+            </div>
+            <div class="companion-foot">
+              <button class="btn-outline" type="button">Open Companion</button>
+            </div>
+          </article>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────── Tweaks panel removed (Phase 1 ships the spec layout) ───────── -->
+</body>
+</html>
