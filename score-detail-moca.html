@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="auth.js"></script>
+<script>window.CareTracerAuth && window.CareTracerAuth.require("patient");</script>
+<meta charset="utf-8" />
+<title>CareTracer — MoCA Trajectory · detail</title>
+<meta name="viewport" content="width=1440" />
+<style>
+  :root {
+    --teal: #0E5C6F;
+    --teal-soft: #B3D9DF;
+    --warm-white: #FBFAF7;
+    --surface: #FFFFFF;
+    --surface-alt: #F4F6F8;
+    --panel-bg: #F8F9FB;
+    --border: #E5EAEE;
+    --text: #1B2330;
+    --text-2: #6B7785;
+    --good: #6FA88D;
+    --caution: #D49A4E;
+    --alert: #C56B72;
+    --track-cog: #4F90B8;
+
+    --card-shadow: 0 1px 2px rgba(27,35,48,0.04), 0 2px 4px rgba(27,35,48,0.04);
+    --card-pad: 28px;
+    --card-radius: 12px;
+    --row-gap: 20px;
+    --page-pad-x: 32px;
+    --page-pad-y: 24px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--warm-white);
+    color: var(--text);
+    font: 400 16px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "tnum";
+  }
+  a { color: var(--teal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ───────── Shell ───────── */
+  .shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  /* ───────── Sidebar ───────── */
+  .sidebar {
+    background: var(--surface-alt);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  .wordmark {
+    padding: 24px 24px 28px;
+    color: var(--teal);
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .wordmark .mark { width: 22px; height: 22px; flex: none; }
+  .nav { display: flex; flex-direction: column; padding: 0 12px; gap: 2px; }
+  .nav a {
+    display: flex; align-items: center; gap: 12px;
+    height: 44px; padding: 0 12px;
+    color: var(--text);
+    font-size: 16px;
+    border-radius: 6px;
+    position: relative;
+  }
+  .nav a:hover { background: rgba(179, 217, 223, 0.25); text-decoration: none; }
+  .nav a svg { width: 16px; height: 16px; color: var(--text-2); flex: none; }
+  .nav a.is-selected {
+    background: rgba(179, 217, 223, 0.30);
+    color: var(--teal);
+    font-weight: 500;
+  }
+  .nav a.is-selected svg { color: var(--teal); }
+  .nav a.is-selected::before {
+    content: "";
+    position: absolute; left: -12px; top: 8px; bottom: 8px;
+    width: 3px; background: var(--teal); border-radius: 0 2px 2px 0;
+  }
+
+  /* ───────── Topbar ───────── */
+  .main { display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 64px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--page-pad-x);
+  }
+  .topbar h1 { margin: 0; font-size: 20px; font-weight: 600; color: var(--text); }
+  .topbar-right { display: flex; align-items: center; gap: 24px; }
+  .last-updated { font-size: 14px; color: var(--text-2); }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--teal); color: #fff;
+    font-size: 14px; font-weight: 600;
+    display: grid; place-items: center;
+    letter-spacing: 0.02em;
+  }
+
+  /* ───────── Content ───────── */
+  .content {
+    padding: var(--page-pad-y) var(--page-pad-x);
+    display: flex; flex-direction: column;
+    gap: var(--row-gap);
+  }
+
+  /* ───────── Breadcrumb ───────── */
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-2);
+    margin: 0 0 -8px;
+  }
+  .breadcrumb a { color: var(--teal); }
+  .breadcrumb .chev { color: var(--text-2); font-size: 12px; line-height: 1; }
+  .breadcrumb .current { color: var(--text); font-weight: 500; }
+
+  /* ───────── Page header ───────── */
+  .page-header h2 {
+    margin: 0 0 6px;
+    font-size: 28px; font-weight: 600; color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .page-header p.subhead {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-2);
+    max-width: 880px;
+  }
+  .page-header p.sample {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--text-2);
+    font-style: italic;
+  }
+
+  /* ───────── Cards ───────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    padding: var(--card-pad);
+  }
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin: 0;
+  }
+  .eyebrow-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .eyebrow-row .meta {
+    font-size: 12px;
+    color: var(--text-2);
+  }
+  .card-heading {
+    margin: 6px 0 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .card-sub {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--text-2);
+    max-width: 720px;
+  }
+
+  /* ───────── Layer 1 hero ───────── */
+  .hero-row {
+    margin-top: 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .hero-num {
+    font-size: 52px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .hero-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .hero-trend-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .trend-glyph {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .trend-glyph.caution { color: var(--caution); }
+  .hero-sub {
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .series-pill {
+    margin-left: auto;
+    align-self: center;
+    background: rgba(179, 217, 223, 0.40);
+    color: var(--teal);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+
+  .one-line-interp {
+    margin: 12px 0 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text);
+  }
+
+  .big-chart-wrap {
+    margin-top: 24px;
+    width: 100%;
+  }
+  .chart-svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+  .card-footer-row {
+    margin-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-2);
+  }
+
+  /* ───────── Layer 2 two-column ───────── */
+  .two-col {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .sub-panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .sub-panel h4 {
+    margin: 0 0 14px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .sub-sub-heading {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 8px;
+  }
+
+  .source-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .source-row:last-child { border-bottom: 0; }
+  .source-row.related { margin-top: 6px; }
+  .source-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .resource-tag {
+    font-family: ui-monospace, SFMono-Regular, "Menlo", "Consolas", monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--teal);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    line-height: 1.3;
+  }
+  .source-link {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--teal);
+    white-space: nowrap;
+  }
+
+  .domains-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .domain-chip {
+    display: inline-flex;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .domains-note {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: var(--text-2);
+    font-style: italic;
+  }
+
+  .limits-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .limit-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+  }
+  .limit-icon {
+    width: 14px; height: 14px;
+    flex: none;
+    margin-top: 3px;
+  }
+  .limit-body { font-size: 13px; color: var(--text); }
+  .limit-body strong { display: block; font-weight: 500; }
+  .limit-body span {
+    display: block;
+    font-size: 12px;
+    color: var(--text-2);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+  .limits-close {
+    margin: 14px 0 0;
+    font-size: 12px;
+    color: var(--text-2);
+    font-style: italic;
+  }
+
+  /* ───────── Layer 3 ───────── */
+  .layer3-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .layer3-top .card-heading { margin-top: 6px; }
+  .toggle-btn {
+    height: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--teal);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .toggle-btn:hover { background: var(--surface-alt); }
+
+  .thermometer-wrap { margin-top: 24px; }
+  .trajectory-interp {
+    margin: 20px 0 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    max-width: 880px;
+  }
+
+  /* ───────── Why this matters ───────── */
+  .why-body {
+    margin: 10px 0 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    max-width: 880px;
+  }
+  .action-row {
+    margin-top: 18px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: var(--teal); color: #fff;
+    border: 1px solid var(--teal);
+    font-size: 14px; font-weight: 600;
+    padding: 10px 20px; border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary:hover { background: #0a4c5c; }
+  .btn-outline {
+    background: transparent;
+    color: var(--teal);
+    border: 1px solid var(--teal);
+    font-size: 14px; font-weight: 600;
+    padding: 10px 20px; border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-outline:hover { background: rgba(179, 217, 223, 0.18); }
+
+  /* ───────── Companion CTA ───────── */
+  .companion-cta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+  }
+  .companion-icon {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: rgba(179, 217, 223, 0.30);
+    display: grid; place-items: center;
+    flex: none;
+  }
+  .companion-text {
+    flex: 1 1 auto;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .companion-text strong { font-size: 15px; font-weight: 600; color: var(--text); }
+  .companion-text span { font-size: 13px; color: var(--text-2); }
+</style>
+</head>
+<body>
+
+  <div class="shell" data-screen-label="Score Detail · MoCA">
+    <!-- ───────── Sidebar ───────── -->
+    <aside class="sidebar">
+      <div class="wordmark">
+        <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 3v18M3 12h18"></path>
+        </svg>
+        CareTracer
+      </div>
+      <nav class="nav" aria-label="Primary">
+        <a href="patient-home.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"></path><path d="M5 9v12h14V9"></path></svg>
+          Home
+        </a>
+        <a href="health-map.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path d="M6 8v4a4 4 0 0 0 4 4h4"></path></svg>
+          My Health Map
+        </a>
+        <a href="health-scores.html" class="is-selected" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-9"></path></svg>
+          Health Scores
+        </a>
+        <a href="companion.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"></path></svg>
+          Companion
+        </a>
+        <a href="care-compass.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M15 9l-2 5-5 2 2-5 5-2z"></path></svg>
+          Care Compass
+        </a>
+        <a href="care-partners.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="10" r="2"></circle><path d="M3 20c0-3 3-5 6-5s6 2 6 5"></path><path d="M15 20c0-2 2-3.5 4-3.5s2 1 2 2"></path></svg>
+          Care Partners
+        </a>
+        <a href="share-with-doctor.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v14"></path></svg>
+          Share with Doctor
+        </a>
+        <a href="#settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+          Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- ───────── Main ───────── -->
+    <div class="main">
+      <header class="topbar">
+        <h1>MoCA Trajectory · detail</h1>
+        <div class="topbar-right">
+          <span class="last-updated">Last updated May 12, 2026</span>
+          <div class="avatar" aria-label="John Doe">JD</div>
+        </div>
+      </header>
+
+      <div class="content">
+
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="health-scores.html">Health Scores</a>
+          <span class="chev" aria-hidden="true">›</span>
+          <span class="current">MoCA Trajectory</span>
+        </nav>
+
+        <section class="page-header">
+          <h2>MoCA Trajectory</h2>
+          <p class="subhead">A close look at your Montreal Cognitive Assessment results, what the score is built from, and what it does and does not measure.</p>
+          <p class="sample">This is a sample patient record for demonstration only. All data is synthetic.</p>
+        </section>
+
+        <!-- ───────── Layer 1 — The Number ───────── -->
+        <article class="card" aria-labelledby="layer1-title">
+          <div class="eyebrow-row">
+            <p class="eyebrow" id="layer1-title">Layer 1 · The number</p>
+            <span class="meta">Updated March 10, 2026</span>
+          </div>
+
+          <div class="hero-row">
+            <span class="hero-num">22 / 30</span>
+            <div class="hero-stack">
+              <span class="hero-trend-row">
+                <span class="trend-glyph caution" aria-label="Declining">▼</span>
+                Declining over 19 months
+              </span>
+              <span class="hero-sub">Mild Cognitive Impairment range</span>
+            </div>
+            <span class="series-pill">Score 3 of 3 in this series</span>
+          </div>
+
+          <p class="one-line-interp">Your most recent MoCA score is 22 out of 30, taken on March 10, 2026. This is within the range typically described as Mild Cognitive Impairment.</p>
+
+          <div class="big-chart-wrap">
+            <svg class="chart-svg" viewBox="0 0 1100 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MoCA Trajectory from August 2024 to March 2026: three measurements at 26, 24, and 22 out of 30, declining slowly through the Mild Cognitive Impairment range.">
+
+              <!-- Reference bands -->
+              <rect x="80" y="24"  width="980" height="60" fill="#6FA88D" fill-opacity="0.12"/>
+              <rect x="80" y="84"  width="980" height="60" fill="#D49A4E" fill-opacity="0.12"/>
+              <rect x="80" y="144" width="980" height="60" fill="#C56B72" fill-opacity="0.10"/>
+              <rect x="80" y="204" width="980" height="46" fill="#C56B72" fill-opacity="0.16"/>
+
+              <!-- Band labels (right edge) -->
+              <text x="1056" y="58"  font-size="10" font-weight="500" fill="#5A8C75" text-anchor="end">NORMAL</text>
+              <text x="1056" y="118" font-size="10" font-weight="500" fill="#8A5E2D" text-anchor="end">MILD COGNITIVE IMPAIRMENT</text>
+              <text x="1056" y="178" font-size="10" font-weight="500" fill="#8E4A52" text-anchor="end">MILD DEMENTIA RANGE</text>
+              <text x="1056" y="232" font-size="10" font-weight="500" fill="#8E4A52" text-anchor="end">MODERATE–SEVERE</text>
+
+              <!-- Y axis -->
+              <line x1="80" y1="24" x2="80" y2="250" stroke="#E5EAEE" stroke-width="1"/>
+              <text x="72" y="28"  font-size="11" fill="#6B7785" text-anchor="end">30</text>
+              <text x="72" y="88"  font-size="11" fill="#6B7785" text-anchor="end">26</text>
+              <text x="72" y="148" font-size="11" fill="#6B7785" text-anchor="end">18</text>
+              <text x="72" y="208" font-size="11" fill="#6B7785" text-anchor="end">10</text>
+              <text x="72" y="253" font-size="11" fill="#6B7785" text-anchor="end">0</text>
+              <text x="26" y="137" transform="rotate(-90 26 137)" font-size="11" fill="#6B7785" text-anchor="middle">MoCA Score (out of 30)</text>
+
+              <!-- X axis -->
+              <line x1="80" y1="250" x2="1060" y2="250" stroke="#E5EAEE" stroke-width="1"/>
+              <text x="200"  y="270" font-size="11" fill="#6B7785" text-anchor="middle">Aug 14, 2024</text>
+              <text x="600"  y="270" font-size="11" fill="#6B7785" text-anchor="middle">Aug 22, 2025</text>
+              <text x="1000" y="270" font-size="11" fill="#6B7785" text-anchor="middle">Mar 10, 2026</text>
+
+              <!-- Trajectory line -->
+              <polyline points="200,84 600,99 1000,114" fill="none" stroke="#4F90B8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+              <!-- Data points + value labels -->
+              <circle cx="200" cy="84" r="4" fill="#4F90B8"/>
+              <text x="200" y="70" font-size="12" font-weight="600" fill="#1B2330" text-anchor="middle">26</text>
+
+              <circle cx="600" cy="99" r="4" fill="#4F90B8"/>
+              <text x="600" y="85" font-size="12" font-weight="600" fill="#1B2330" text-anchor="middle">24</text>
+
+              <!-- Highlighted last point -->
+              <circle cx="1000" cy="114" r="7" fill="#FFFFFF" stroke="#4F90B8" stroke-width="2.5"/>
+              <circle cx="1000" cy="114" r="4" fill="#4F90B8"/>
+              <text x="1000" y="100" font-size="13" font-weight="700" fill="#1B2330" text-anchor="middle">22</text>
+
+              <!-- Bottom caption -->
+              <text x="570" y="298" font-size="11" font-style="italic" fill="#6B7785" text-anchor="middle">Tap any data point to see the source record from your chart.</text>
+            </svg>
+          </div>
+
+          <div class="card-footer-row">
+            <span>Source: Neurology cognitive assessments × 3</span>
+            <span>MoCA published by Nasreddine et al., 2005 · validated cognitive screening tool</span>
+          </div>
+        </article>
+
+        <!-- ───────── Layer 2 — What this can and cannot see ───────── -->
+        <article class="card" aria-labelledby="layer2-title">
+          <p class="eyebrow" id="layer2-title">Layer 2 · What this score can and cannot see</p>
+          <h3 class="card-heading">Inputs and limits, in plain language</h3>
+          <p class="card-sub">Knowing what the MoCA includes — and what it leaves out — is how you and your care team get the most from the score.</p>
+
+          <div class="two-col">
+
+            <!-- Left: What this score uses -->
+            <section class="sub-panel" aria-labelledby="layer2-left">
+              <h4 id="layer2-left">What this score uses</h4>
+
+              <p class="sub-sub-heading">Source assessments from your chart</p>
+              <div class="source-row">
+                <span class="source-left">
+                  <span class="resource-tag">Observation</span>
+                  Aug 14, 2024 · MoCA 26/30
+                </span>
+                <a class="source-link" href="#">View source →</a>
+              </div>
+              <div class="source-row">
+                <span class="source-left">
+                  <span class="resource-tag">Observation</span>
+                  Aug 22, 2025 · MoCA 24/30
+                </span>
+                <a class="source-link" href="#">View source →</a>
+              </div>
+              <div class="source-row">
+                <span class="source-left">
+                  <span class="resource-tag">Observation</span>
+                  Mar 10, 2026 · MoCA 22/30
+                </span>
+                <a class="source-link" href="#">View source →</a>
+              </div>
+              <div class="source-row related">
+                <span class="source-left">
+                  <span class="resource-tag">DocumentReference</span>
+                  Feb 20, 2025 · Neuropsychological battery (full)
+                </span>
+                <a class="source-link" href="#">View source →</a>
+              </div>
+
+              <p class="sub-sub-heading" style="margin-top: 18px;">Cognitive domains the test covers</p>
+              <div class="domains-list">
+                <span class="domain-chip">Visuospatial / executive</span>
+                <span class="domain-chip">Naming</span>
+                <span class="domain-chip">Attention</span>
+                <span class="domain-chip">Language</span>
+                <span class="domain-chip">Abstraction</span>
+                <span class="domain-chip">Delayed recall</span>
+                <span class="domain-chip">Orientation</span>
+              </div>
+              <p class="domains-note">Your test results showed reduced performance on delayed recall and visuospatial tasks.</p>
+            </section>
+
+            <!-- Right: What this score does not capture -->
+            <section class="sub-panel" aria-labelledby="layer2-right">
+              <h4 id="layer2-right">What this score does not capture</h4>
+
+              <div class="limits-list">
+                <div class="limit-row">
+                  <svg class="limit-icon" viewBox="0 0 14 14" aria-hidden="true">
+                    <circle cx="7" cy="7" r="6" fill="none" stroke="#6B7785" stroke-width="1"/>
+                    <line x1="3.5" y1="7" x2="10.5" y2="7" stroke="#6B7785" stroke-width="1"/>
+                  </svg>
+                  <div class="limit-body">
+                    <strong>Daily living function</strong>
+                    <span>Whether you can manage cooking, shopping, finances, and other activities at home</span>
+                  </div>
+                </div>
+                <div class="limit-row">
+                  <svg class="limit-icon" viewBox="0 0 14 14" aria-hidden="true">
+                    <circle cx="7" cy="7" r="6" fill="none" stroke="#6B7785" stroke-width="1"/>
+                    <line x1="3.5" y1="7" x2="10.5" y2="7" stroke="#6B7785" stroke-width="1"/>
+                  </svg>
+                  <div class="limit-body">
+                    <strong>Mood and depression</strong>
+                    <span>Symptoms of depression can affect cognitive testing but are evaluated separately</span>
+                  </div>
+                </div>
+                <div class="limit-row">
+                  <svg class="limit-icon" viewBox="0 0 14 14" aria-hidden="true">
+                    <circle cx="7" cy="7" r="6" fill="none" stroke="#6B7785" stroke-width="1"/>
+                    <line x1="3.5" y1="7" x2="10.5" y2="7" stroke="#6B7785" stroke-width="1"/>
+                  </svg>
+                  <div class="limit-body">
+                    <strong>Sleep patterns</strong>
+                    <span>Poor sleep can lower scores temporarily; sleep is not measured here</span>
+                  </div>
+                </div>
+                <div class="limit-row">
+                  <svg class="limit-icon" viewBox="0 0 14 14" aria-hidden="true">
+                    <circle cx="7" cy="7" r="6" fill="none" stroke="#6B7785" stroke-width="1"/>
+                    <line x1="3.5" y1="7" x2="10.5" y2="7" stroke="#6B7785" stroke-width="1"/>
+                  </svg>
+                  <div class="limit-body">
+                    <strong>Behavioral changes</strong>
+                    <span>Personality or behavioral shifts often noticed by family members are not in the score</span>
+                  </div>
+                </div>
+                <div class="limit-row">
+                  <svg class="limit-icon" viewBox="0 0 14 14" aria-hidden="true">
+                    <circle cx="7" cy="7" r="6" fill="none" stroke="#6B7785" stroke-width="1"/>
+                    <line x1="3.5" y1="7" x2="10.5" y2="7" stroke="#6B7785" stroke-width="1"/>
+                  </svg>
+                  <div class="limit-body">
+                    <strong>Performance during typical activities</strong>
+                    <span>Office testing is a snapshot; how you function day-to-day is captured differently</span>
+                  </div>
+                </div>
+                <div class="limit-row">
+                  <svg class="limit-icon" viewBox="0 0 14 14" aria-hidden="true">
+                    <circle cx="7" cy="7" r="6" fill="none" stroke="#6B7785" stroke-width="1"/>
+                    <line x1="3.5" y1="7" x2="10.5" y2="7" stroke="#6B7785" stroke-width="1"/>
+                  </svg>
+                  <div class="limit-body">
+                    <strong>Subtle changes in highly-educated individuals</strong>
+                    <span>MoCA has ceiling effects; small declines from a previously high baseline may not show up</span>
+                  </div>
+                </div>
+              </div>
+
+              <p class="limits-close">MoCA is a screening tool, not a diagnostic test on its own. Your neurology team uses it together with other assessments and your history.</p>
+            </section>
+          </div>
+        </article>
+
+        <!-- ───────── Layer 3 — Severity context ───────── -->
+        <article class="card" aria-labelledby="layer3-title">
+          <p class="eyebrow" id="layer3-title">Layer 3 · Severity context</p>
+          <div class="layer3-top">
+            <div>
+              <h3 class="card-heading">How your score compares</h3>
+              <p class="card-sub">Severity context is hidden by default. We show it on request, so opening the app is never a wall of colors.</p>
+            </div>
+            <button type="button" class="toggle-btn" aria-expanded="true">Hide severity context ⌃</button>
+          </div>
+
+          <div class="thermometer-wrap">
+            <svg class="chart-svg" viewBox="0 0 1100 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MoCA severity thermometer. Four ranges from Moderate–Severe at the low end to Normal at the high end. Your most recent score, 22, is marked in the Mild Cognitive Impairment range." style="height: 140px;">
+
+              <!-- Range labels above -->
+              <text x="227" y="32" font-size="11" font-weight="600" fill="#8E4A52" text-anchor="middle">MODERATE–SEVERE</text>
+              <text x="504" y="32" font-size="11" font-weight="600" fill="#8A5E2D" text-anchor="middle">MILD DEMENTIA</text>
+              <text x="765" y="32" font-size="11" font-weight="600" fill="#8A5E2D" text-anchor="middle">MCI</text>
+              <text x="978" y="32" font-size="11" font-weight="600" fill="#5A8C75" text-anchor="middle">NORMAL</text>
+
+              <!-- Bar segments -->
+              <rect x="80"  y="44" width="294" height="38" fill="#C56B72" fill-opacity="0.20"/>
+              <rect x="374" y="44" width="261" height="38" fill="#C56B72" fill-opacity="0.12"/>
+              <rect x="635" y="44" width="261" height="38" fill="#D49A4E" fill-opacity="0.18"/>
+              <rect x="896" y="44" width="164" height="38" fill="#6FA88D" fill-opacity="0.20"/>
+
+              <!-- Subtle dividers -->
+              <line x1="374" y1="44" x2="374" y2="82" stroke="#FFFFFF" stroke-width="1"/>
+              <line x1="635" y1="44" x2="635" y2="82" stroke="#FFFFFF" stroke-width="1"/>
+              <line x1="896" y1="44" x2="896" y2="82" stroke="#FFFFFF" stroke-width="1"/>
+
+              <!-- Numeric ranges below -->
+              <text x="227" y="102" font-size="11" fill="#6B7785" text-anchor="middle">0 – 9</text>
+              <text x="504" y="102" font-size="11" fill="#6B7785" text-anchor="middle">10 – 17</text>
+              <text x="765" y="102" font-size="11" fill="#6B7785" text-anchor="middle">18 – 25</text>
+              <text x="978" y="102" font-size="11" fill="#6B7785" text-anchor="middle">26 – 30</text>
+
+              <!-- John's position marker at x=784 (value 22) -->
+              <line x1="784" y1="24" x2="784" y2="92" stroke="#0E5C6F" stroke-width="2"/>
+              <circle cx="784" cy="24" r="6" fill="#0E5C6F"/>
+              <!-- Label box: centered on x=784, y=8 to y=22 -->
+              <rect x="734" y="6" width="100" height="18" rx="4" fill="#FFFFFF" stroke="#0E5C6F" stroke-width="1"/>
+              <text x="784" y="19" font-size="12" font-weight="600" fill="#0E5C6F" text-anchor="middle">You · MoCA 22</text>
+
+              <!-- Population comparison -->
+              <text x="80" y="126" font-size="12" fill="#6B7785">Most cognitively healthy adults ages 65 to 80 score between 25 and 30 on the MoCA.</text>
+            </svg>
+          </div>
+
+          <p class="trajectory-interp">Your score has moved from 26 to 24 to 22 across three measurements over 19 months. The trend is consistent with the slow, gradual change your neurology team has documented since your initial MCI assessment in August 2024. A single MoCA score is a snapshot, and changes of one to two points between visits can also reflect testing variability, attention, sleep, or how a particular day was going.</p>
+        </article>
+
+        <!-- ───────── Why this matters ───────── -->
+        <article class="card">
+          <h3 class="card-heading" style="margin-top: 0;">Why this matters for your care</h3>
+          <p class="why-body">Your MoCA trajectory is one of several inputs your neurology team uses to track your cognitive health and to decide whether and when to adjust your care. Other inputs include the full neuropsychological battery from February 2025, your brain MRI, your daily-function reports, and conversations with you and your family. The next neurology visit is a good moment to review the trajectory together, discuss how things are going at home, and revisit the advance-care-planning conversation noted in your last neurology summary.</p>
+          <div class="action-row">
+            <button type="button" class="btn-primary">Add to my next-visit notes</button>
+            <button type="button" class="btn-outline">Open related Care Compass item</button>
+          </div>
+        </article>
+
+        <!-- ───────── Companion CTA ───────── -->
+        <article class="companion-cta">
+          <div class="companion-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0E5C6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/>
+            </svg>
+          </div>
+          <div class="companion-text">
+            <strong>Have a question about this score?</strong>
+            <span>The Companion explains any input, any trend, and what the score cannot see — grounded in your own records.</span>
+          </div>
+          <button class="btn-primary" type="button">Ask the Companion</button>
+        </article>
+
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
