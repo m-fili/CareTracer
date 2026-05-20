@@ -1,0 +1,1116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="auth.js"></script>
+<script>window.CareTracerAuth && window.CareTracerAuth.require("provider");</script>
+<meta charset="utf-8" />
+<title>CareTracer — Provider Mode · Patient Panel</title>
+<meta name="viewport" content="width=1440" />
+<style>
+  :root {
+    --teal: #0E5C6F;
+    --teal-soft: #B3D9DF;
+    --warm-white: #FBFAF7;
+    --surface: #FFFFFF;
+    --surface-alt: #F4F6F8;
+    --panel-bg: #F8F9FB;
+    --border: #E5EAEE;
+    --text: #1B2330;
+    --text-2: #6B7785;
+    --good: #6FA88D;
+    --caution: #D49A4E;
+    --alert: #C56B72;
+    --track-cog: #4F90B8;
+    --track-gly: #E8985F;
+    --track-cv:  #D55D5D;
+    --track-kid: #8B7BB8;
+    --track-prev: #7C9BAA;
+
+    --pill-suggested-bg: #E5EAEE;
+    --pill-suggested-fg: #6B7785;
+    --pill-documented-bg: rgba(179, 217, 223, 0.40);
+    --pill-documented-fg: #0E5C6F;
+    --pill-implied-bg: rgba(212, 154, 78, 0.20);
+    --pill-implied-fg: #8A5E2D;
+
+    --card-shadow: 0 1px 2px rgba(27,35,48,0.04), 0 2px 4px rgba(27,35,48,0.04);
+    --card-radius: 10px;
+    --card-pad: 16px;
+    --page-pad-x: 32px;
+    --page-pad-y: 16px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--warm-white);
+    color: var(--text);
+    font: 400 14px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "tnum";
+  }
+  a { color: var(--teal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button, input { font-family: inherit; }
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ───────── Shell ───────── */
+  .shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  /* ───────── Sidebar ───────── */
+  .sidebar {
+    background: var(--surface-alt);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  .wordmark {
+    padding: 24px 24px 8px;
+    color: var(--teal);
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .wordmark .mark { width: 22px; height: 22px; flex: none; }
+  .mode-badge {
+    margin: 0 24px 0 36px;
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(14, 92, 111, 0.10);
+    color: var(--teal);
+    border-radius: 12px;
+    letter-spacing: 0.02em;
+  }
+  .nav {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 12px 0;
+    gap: 2px;
+  }
+  .nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 40px;
+    padding: 0 12px;
+    color: var(--text);
+    font-size: 14px;
+    border-radius: 6px;
+    position: relative;
+  }
+  .nav a:hover { background: rgba(179, 217, 223, 0.25); text-decoration: none; }
+  .nav a svg { width: 16px; height: 16px; color: var(--text-2); flex: none; }
+  .nav a.is-selected {
+    background: rgba(179, 217, 223, 0.30);
+    color: var(--teal);
+    font-weight: 500;
+  }
+  .nav a.is-selected svg { color: var(--teal); }
+  .nav a.is-selected::before {
+    content: "";
+    position: absolute; left: -12px; top: 7px; bottom: 7px;
+    width: 3px; background: var(--teal); border-radius: 0 2px 2px 0;
+  }
+  .sidebar-user {
+    margin-top: auto;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .user-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    display: grid;
+    place-items: center;
+    flex: none;
+    letter-spacing: 0.02em;
+  }
+  .user-stack { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .user-org { font-size: 12px; color: var(--text-2); }
+
+  /* ───────── Topbar ───────── */
+  .main { display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 56px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--page-pad-x);
+  }
+  .topbar h1 { margin: 0; font-size: 18px; font-weight: 600; color: var(--text); }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .notif-btn {
+    position: relative;
+    width: 32px; height: 32px;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    color: var(--text-2);
+  }
+  .notif-btn:hover { background: var(--surface-alt); }
+  .notif-btn svg { width: 18px; height: 18px; }
+  .notif-dot {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 6px; height: 6px;
+    background: var(--alert);
+    border-radius: 50%;
+    border: 1px solid var(--surface);
+  }
+  .topbar-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .topbar-user .user-avatar { width: 32px; height: 32px; }
+  .topbar-user span { font-size: 13px; font-weight: 500; color: var(--text); }
+
+  /* ───────── Content ───────── */
+  .content {
+    padding: var(--page-pad-y) var(--page-pad-x);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .page-header h2 {
+    margin: 0 0 4px;
+    font-size: 24px; font-weight: 600; color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .page-header p.subhead {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .page-header p.sample {
+    margin: 4px 0 0;
+    font-size: 11px;
+    color: var(--text-2);
+    font-style: italic;
+  }
+
+  /* ───────── Three-column main area ───────── */
+  .columns {
+    display: grid;
+    grid-template-columns: 260px 1fr 340px;
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    padding: var(--card-pad);
+  }
+
+  /* ───────── Left: Patient panel list ───────── */
+  .panel-list-card {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .search {
+    height: 32px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search svg { width: 14px; height: 14px; color: var(--text-2); }
+  .search input {
+    flex: 1 1 auto;
+    background: transparent;
+    border: 0;
+    outline: none;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .search input::placeholder { color: var(--text-2); }
+
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .filter-chip:hover { background: var(--surface-alt); }
+  .filter-chip.is-selected {
+    background: var(--teal);
+    color: #fff;
+    border-color: var(--teal);
+  }
+
+  .patient-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .patient-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    position: relative;
+  }
+  .patient-row:last-child { border-bottom: 0; }
+  .patient-row:hover { background: var(--surface-alt); }
+  .patient-row.is-selected {
+    background: rgba(179, 217, 223, 0.40);
+    padding-left: 9px;
+  }
+  .patient-row.is-selected::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 4px; bottom: 4px;
+    width: 3px;
+    background: var(--teal);
+    border-radius: 0 2px 2px 0;
+  }
+  .patient-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(179, 217, 223, 0.30);
+    color: var(--teal);
+    font-size: 12px;
+    font-weight: 600;
+    display: grid;
+    place-items: center;
+    flex: none;
+    letter-spacing: 0.02em;
+  }
+  .patient-row.is-selected .patient-avatar { background: var(--teal); color: #fff; }
+  .patient-mid { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+  .patient-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .patient-row.is-selected .patient-name { color: var(--teal); font-weight: 600; }
+  .patient-meta {
+    font-size: 12px; color: var(--text-2);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .cdot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-left: 2px;
+  }
+  .patient-stamp {
+    font-size: 11px;
+    color: var(--text-2);
+    flex: none;
+  }
+
+  /* ───────── Center column ───────── */
+  .center-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+  /* Banner */
+  .banner-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .banner-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .banner-id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .banner-name { font-size: 16px; font-weight: 600; color: var(--text); }
+  .banner-meta { font-size: 12px; color: var(--text-2); }
+  .banner-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .source-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    line-height: 1.2;
+  }
+  .btn-primary {
+    background: var(--teal); color: #fff;
+    border: 1px solid var(--teal);
+    font-size: 13px; font-weight: 600;
+    padding: 8px 14px; border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex: none;
+  }
+  .btn-primary:hover { background: #0a4c5c; }
+  .source-chip { flex: none; white-space: nowrap; }
+
+  /* Card header (compact) */
+  .card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card-head .left-stack { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .card-head .title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .card-head .sub { font-size: 11px; color: var(--text-2); }
+  .head-link {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--teal);
+    white-space: nowrap;
+  }
+
+  /* Map */
+  .map-card-pad { padding: 16px; }
+  .map-svg-wrap {
+    width: 100%;
+    margin-top: 10px;
+    aspect-ratio: 900 / 220;
+  }
+  .map-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  /* Score grid */
+  .score-grid {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .score-cell {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .score-cell .label { font-size: 11px; color: var(--text-2); }
+  .score-num-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .score-num {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+  .score-num.text-num { font-size: 20px; }
+  .trend-glyph { font-size: 14px; line-height: 1; }
+  .trend-good { color: var(--good); }
+  .trend-caution { color: var(--caution); }
+  .trend-stable { color: var(--text-2); }
+  .score-status { font-size: 11px; color: var(--text-2); }
+  .spark { width: 100%; height: 20px; display: block; margin-top: 2px; }
+
+  /* ───────── Right column ───────── */
+  .right-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+  .panel-card { padding: 16px; }
+
+  .help-q {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px; height: 16px;
+    margin-left: 6px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-2);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: help;
+    vertical-align: middle;
+    padding: 0;
+  }
+  .help-q:hover { background: var(--surface-alt); color: var(--text); border-color: var(--text-2); }
+
+  .summary-row {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 12px;
+  }
+  .summary-left .label { font-size: 11px; color: var(--text-2); }
+  .summary-left .num {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.05;
+    margin-top: 2px;
+  }
+  .summary-left .cap { font-size: 10px; color: var(--text-2); margin-top: 2px; }
+  .summary-right {
+    font-size: 11px;
+    color: var(--text-2);
+    text-align: right;
+  }
+
+  /* Suggestion list */
+  .suggestion-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--border);
+    margin-top: 10px;
+  }
+  .suggestion {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .suggestion:last-child { border-bottom: 0; }
+  .sug-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .sug-top-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+  .code-tag {
+    font-family: ui-monospace, SFMono-Regular, "Menlo", "Consolas", monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--teal);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    line-height: 1.3;
+  }
+  .sug-descriptor {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .plus-icon {
+    width: 12px; height: 12px;
+    color: var(--teal);
+    flex: none;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 500;
+    border-radius: 10px;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+  .pill-suggested  { background: var(--pill-suggested-bg); color: var(--pill-suggested-fg); }
+  .pill-documented { background: var(--pill-documented-bg); color: var(--pill-documented-fg); }
+  .pill-implied    { background: var(--pill-implied-bg); color: var(--pill-implied-fg); }
+
+  .evidence {
+    font-size: 11px;
+    color: var(--text-2);
+    line-height: 1.45;
+  }
+  .evidence strong { font-weight: 600; color: var(--text-2); }
+  .sug-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .hcc-note { font-size: 10px; color: var(--text-2); }
+  .review-link { font-size: 11px; font-weight: 500; color: var(--teal); }
+
+  /* ───────── Companion CTA (denser) ───────── */
+  .companion-cta {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+  }
+  .companion-icon {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(179, 217, 223, 0.30);
+    display: grid; place-items: center;
+    flex: none;
+  }
+  .companion-icon svg { width: 20px; height: 20px; }
+  .companion-text {
+    flex: 1 1 auto;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .companion-text strong { font-size: 13px; font-weight: 600; color: var(--text); }
+  .companion-text span { font-size: 12px; color: var(--text-2); }
+  .companion-cta .btn-primary { font-size: 13px; padding: 8px 16px; }
+</style>
+</head>
+<body>
+
+  <div class="shell" data-screen-label="Provider Mode">
+
+    <!-- ───────── Provider sidebar ───────── -->
+    <aside class="sidebar">
+      <div class="wordmark">
+        <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 3v18M3 12h18"></path>
+        </svg>
+        CareTracer
+      </div>
+      <span class="mode-badge">Provider Mode</span>
+
+      <nav class="nav" aria-label="Provider primary">
+        <a href="#" class="is-selected" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 4v16"/></svg>
+          Panel
+        </a>
+        <a href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15 9l-2 5-5 2 2-5 5-2z"/></svg>
+          Care Compass tasks
+        </a>
+        <a href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-9"/></svg>
+          Risk Adjustment
+        </a>
+        <a href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h9l4 4v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v4h4M8 13h8M8 17h8"/></svg>
+          Reports
+        </a>
+        <a href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+          Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div class="user-avatar" aria-hidden="true">MR</div>
+        <div class="user-stack">
+          <span class="user-name">Maria Reyes, RN, CCM</span>
+          <span class="user-org">MGB Care Coordination</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ───────── Main ───────── -->
+    <div class="main">
+      <header class="topbar">
+        <h1>Patient Panel</h1>
+        <div class="topbar-right">
+          <button type="button" class="notif-btn" aria-label="Notifications, 1 unread">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.7 21a2 2 0 0 1-3.4 0"/>
+            </svg>
+            <span class="notif-dot" aria-hidden="true"></span>
+          </button>
+          <span class="topbar-user">
+            <span class="user-avatar" aria-hidden="true">MR</span>
+            <span>Maria Reyes</span>
+          </span>
+        </div>
+      </header>
+
+      <div class="content">
+
+        <section class="page-header">
+          <h2>Patient Panel</h2>
+          <p class="subhead">12 patients on your panel. John Doe is selected.</p>
+          <p class="sample">Sample patient data for demonstration only. All values are synthetic.</p>
+        </section>
+
+        <!-- ───────── Three-column grid ───────── -->
+        <section class="columns">
+
+          <!-- ────── Left: Panel list ────── -->
+          <aside class="card panel-list-card" aria-label="Patient panel">
+            <div class="search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"/>
+                <path d="M21 21l-4.3-4.3"/>
+              </svg>
+              <input type="text" placeholder="Search patients..." aria-label="Search patients" />
+            </div>
+
+            <div class="filter-row" role="group" aria-label="Panel filter">
+              <button type="button" class="filter-chip is-selected">All</button>
+              <button type="button" class="filter-chip">Cardiometabolic</button>
+              <button type="button" class="filter-chip">Cognitive</button>
+              <button type="button" class="filter-chip">Recent</button>
+            </div>
+
+            <div class="patient-list" role="list">
+
+              <div class="patient-row" role="listitem">
+                <span class="patient-avatar">AR</span>
+                <div class="patient-mid">
+                  <span class="patient-name">Anderson, Robert</span>
+                  <span class="patient-meta">68 M<span class="cdot" style="background: var(--track-gly);"></span></span>
+                </div>
+                <span class="patient-stamp">May 18</span>
+              </div>
+
+              <div class="patient-row" role="listitem">
+                <span class="patient-avatar">BP</span>
+                <div class="patient-mid">
+                  <span class="patient-name">Brown, Patricia</span>
+                  <span class="patient-meta">75 F<span class="cdot" style="background: var(--track-cog);"></span></span>
+                </div>
+                <span class="patient-stamp">May 18</span>
+              </div>
+
+              <div class="patient-row is-selected" role="listitem" aria-current="true">
+                <span class="patient-avatar">DJ</span>
+                <div class="patient-mid">
+                  <span class="patient-name">Doe, John</span>
+                  <span class="patient-meta">73 M<span class="cdot" style="background: var(--track-cog);"></span><span class="cdot" style="background: var(--track-gly);"></span><span class="cdot" style="background: var(--track-kid);"></span></span>
+                </div>
+                <span class="patient-stamp">May 12</span>
+              </div>
+
+              <div class="patient-row" role="listitem">
+                <span class="patient-avatar">GM</span>
+                <div class="patient-mid">
+                  <span class="patient-name">Garcia, Maria</span>
+                  <span class="patient-meta">71 F<span class="cdot" style="background: var(--track-cv);"></span></span>
+                </div>
+                <span class="patient-stamp">May 11</span>
+              </div>
+
+              <div class="patient-row" role="listitem">
+                <span class="patient-avatar">JW</span>
+                <div class="patient-mid">
+                  <span class="patient-name">Johnson, William</span>
+                  <span class="patient-meta">70 M<span class="cdot" style="background: var(--track-gly);"></span></span>
+                </div>
+                <span class="patient-stamp">May 10</span>
+              </div>
+
+              <div class="patient-row" role="listitem">
+                <span class="patient-avatar">KS</span>
+                <div class="patient-mid">
+                  <span class="patient-name">Kim, Susan</span>
+                  <span class="patient-meta">67 F<span class="cdot" style="background: var(--track-cog);"></span></span>
+                </div>
+                <span class="patient-stamp">May 9</span>
+              </div>
+
+              <div class="patient-row" role="listitem">
+                <span class="patient-avatar">MC</span>
+                <div class="patient-mid">
+                  <span class="patient-name">Martinez, Carlos</span>
+                  <span class="patient-meta">74 M<span class="cdot" style="background: var(--track-kid);"></span></span>
+                </div>
+                <span class="patient-stamp">May 8</span>
+              </div>
+
+              <div class="patient-row" role="listitem">
+                <span class="patient-avatar">NL</span>
+                <div class="patient-mid">
+                  <span class="patient-name">Nguyen, Linh</span>
+                  <span class="patient-meta">69 F<span class="cdot" style="background: var(--track-cv);"></span></span>
+                </div>
+                <span class="patient-stamp">May 7</span>
+              </div>
+
+            </div>
+          </aside>
+
+          <!-- ────── Center: John Doe clinical view ────── -->
+          <div class="center-col">
+
+            <!-- B1 Patient banner -->
+            <article class="card banner-card">
+              <div class="banner-avatar" aria-hidden="true">JD</div>
+              <div class="banner-id">
+                <span class="banner-name">Doe, John</span>
+                <span class="banner-meta">DOB 1953-04-12 · 73 M · MRN 0001-JD · Last update May 12, 2026</span>
+              </div>
+              <div class="banner-right">
+                <span class="source-chip">MGB</span>
+                <span class="source-chip">NH Community Hospital</span>
+                <button type="button" class="btn-primary">Open full chart</button>
+              </div>
+            </article>
+
+            <!-- B2 Longitudinal Health Map (compact) -->
+            <article class="card map-card-pad" aria-labelledby="map-title">
+              <div class="card-head">
+                <div class="left-stack">
+                  <span class="title" id="map-title">Longitudinal Health Map</span>
+                  <span class="sub">17 years · 4 conditions · 2 source systems</span>
+                </div>
+                <a class="head-link" href="health-map.html">Open in full view →</a>
+              </div>
+
+              <div class="map-svg-wrap">
+                <svg class="map-svg" viewBox="0 0 900 220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Compact longitudinal health map for John Doe: five tracks (Cognitive, Glycemic, Cardiovascular, Kidney, Preventive) across 17 years, with transfer stations and forward-looking suggestions.">
+
+                  <!-- Today marker -->
+                  <line x1="830" y1="14" x2="830" y2="200" stroke="#1B2330" stroke-opacity="0.25" stroke-width="1.2" stroke-dasharray="3 2"/>
+                  <text x="830" y="10" font-size="9" font-weight="600" fill="#1B2330" text-anchor="middle">Today</text>
+
+                  <!-- Tracks (solid past + dashed future) -->
+                  <line x1="60" y1="30"  x2="830" y2="30"  stroke="var(--track-cog)" stroke-width="4" stroke-linecap="round"/>
+                  <line x1="830" y1="30" x2="890" y2="30"  stroke="var(--track-cog)" stroke-width="4" stroke-linecap="round" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+                  <line x1="60" y1="70"  x2="830" y2="70"  stroke="var(--track-gly)" stroke-width="4" stroke-linecap="round"/>
+                  <line x1="830" y1="70" x2="890" y2="70"  stroke="var(--track-gly)" stroke-width="4" stroke-linecap="round" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+                  <line x1="60" y1="110" x2="830" y2="110" stroke="var(--track-cv)"  stroke-width="4" stroke-linecap="round"/>
+                  <line x1="830" y1="110" x2="890" y2="110" stroke="var(--track-cv)"  stroke-width="4" stroke-linecap="round" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+                  <line x1="60" y1="150" x2="830" y2="150" stroke="var(--track-kid)" stroke-width="4" stroke-linecap="round"/>
+                  <line x1="830" y1="150" x2="890" y2="150" stroke="var(--track-kid)" stroke-width="4" stroke-linecap="round" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+                  <line x1="60" y1="190" x2="830" y2="190" stroke="var(--track-prev)" stroke-width="4" stroke-linecap="round"/>
+                  <line x1="830" y1="190" x2="890" y2="190" stroke="var(--track-prev)" stroke-width="4" stroke-linecap="round" stroke-dasharray="5 4" stroke-opacity="0.7"/>
+
+                  <!-- Track labels (abbreviated) -->
+                  <text x="10" y="33"  font-size="10" font-weight="500" fill="#1B2330">Cog</text>
+                  <text x="10" y="73"  font-size="10" font-weight="500" fill="#1B2330">Gly</text>
+                  <text x="10" y="113" font-size="10" font-weight="500" fill="#1B2330">CV</text>
+                  <text x="10" y="153" font-size="10" font-weight="500" fill="#1B2330">Kid</text>
+                  <text x="10" y="193" font-size="10" font-weight="500" fill="#1B2330">Prev</text>
+
+                  <!-- Transfer connector lines -->
+                  <line x1="104" y1="110" x2="104" y2="150" stroke="#1B2330" stroke-opacity="0.2" stroke-width="1"/>
+                  <line x1="733" y1="70"  x2="733" y2="150" stroke="#1B2330" stroke-opacity="0.2" stroke-width="1"/>
+                  <line x1="753" y1="30"  x2="753" y2="110" stroke="#1B2330" stroke-opacity="0.2" stroke-width="1"/>
+
+                  <!-- Glycemic stations -->
+                  <circle cx="60"  cy="70" r="5" fill="var(--track-gly)"/>
+                  <circle cx="678" cy="70" r="5" fill="var(--track-gly)"/>
+                  <!-- Semaglutide trio: transfer rings -->
+                  <circle cx="733" cy="70"  r="7" fill="#FFFFFF" stroke="var(--track-gly)" stroke-width="2"/>
+                  <circle cx="733" cy="70"  r="3" fill="var(--track-gly)"/>
+                  <circle cx="737" cy="70" r="5" fill="var(--track-gly)"/>
+                  <circle cx="828" cy="70" r="5" fill="var(--track-gly)"/>
+
+                  <!-- Cardiovascular stations -->
+                  <circle cx="104" cy="110" r="7" fill="#FFFFFF" stroke="var(--track-cv)" stroke-width="2"/>
+                  <circle cx="104" cy="110" r="3" fill="var(--track-cv)"/>
+                  <circle cx="193" cy="110" r="5" fill="var(--track-cv)"/>
+                  <circle cx="733" cy="110" r="7" fill="#FFFFFF" stroke="var(--track-cv)" stroke-width="2"/>
+                  <circle cx="733" cy="110" r="3" fill="var(--track-cv)"/>
+                  <!-- Brain MRI transfer (Cog ↔ CV) -->
+                  <circle cx="753" cy="110" r="7" fill="#FFFFFF" stroke="var(--track-cv)" stroke-width="2"/>
+                  <circle cx="753" cy="110" r="3" fill="var(--track-cv)"/>
+
+                  <!-- Kidney stations -->
+                  <circle cx="104" cy="150" r="7" fill="#FFFFFF" stroke="var(--track-kid)" stroke-width="2"/>
+                  <circle cx="104" cy="150" r="3" fill="var(--track-kid)"/>
+                  <circle cx="459" cy="150" r="5" fill="var(--track-kid)"/>
+                  <circle cx="733" cy="150" r="7" fill="#FFFFFF" stroke="var(--track-kid)" stroke-width="2"/>
+                  <circle cx="733" cy="150" r="3" fill="var(--track-kid)"/>
+                  <circle cx="828" cy="150" r="5" fill="var(--track-kid)"/>
+
+                  <!-- Cognitive stations -->
+                  <circle cx="753" cy="30" r="7" fill="#FFFFFF" stroke="var(--track-cog)" stroke-width="2"/>
+                  <circle cx="753" cy="30" r="3" fill="var(--track-cog)"/>
+                  <circle cx="762" cy="30" r="5" fill="var(--track-cog)"/>
+                  <circle cx="798" cy="30" r="5" fill="var(--track-cog)"/>
+                  <circle cx="823" cy="30" r="5" fill="var(--track-cog)"/>
+
+                  <!-- Preventive stations -->
+                  <circle cx="548" cy="190" r="5" fill="var(--track-prev)"/>
+                  <circle cx="592" cy="190" r="5" fill="var(--track-prev)"/>
+                  <circle cx="757" cy="190" r="5" fill="var(--track-prev)"/>
+                  <circle cx="810" cy="190" r="5" fill="var(--track-prev)"/>
+                  <circle cx="820" cy="190" r="5" fill="var(--track-prev)"/>
+
+                  <!-- Forward stations -->
+                  <circle cx="850" cy="70"  r="5" fill="#FFFFFF" stroke="var(--track-gly)" stroke-width="1.5" stroke-dasharray="2 2"/>
+                  <circle cx="880" cy="70"  r="5" fill="#FFFFFF" stroke="var(--track-gly)" stroke-width="1.5" stroke-dasharray="2 2"/>
+                  <circle cx="855" cy="30"  r="5" fill="#FFFFFF" stroke="var(--track-cog)" stroke-width="1.5" stroke-dasharray="2 2"/>
+                  <circle cx="885" cy="30"  r="5" fill="#FFFFFF" stroke="var(--track-cog)" stroke-width="1.5" stroke-dasharray="2 2"/>
+                  <circle cx="870" cy="190" r="5" fill="#FFFFFF" stroke="var(--track-prev)" stroke-width="1.5" stroke-dasharray="2 2"/>
+
+                  <!-- Year axis -->
+                  <line x1="60" y1="208" x2="890" y2="208" stroke="var(--border)" stroke-width="1"/>
+                  <text x="60"  y="220" font-size="10" fill="var(--text-2)" text-anchor="middle">2009</text>
+                  <text x="326" y="220" font-size="10" fill="var(--text-2)" text-anchor="middle">2015</text>
+                  <text x="548" y="220" font-size="10" fill="var(--text-2)" text-anchor="middle">2020</text>
+                  <text x="725" y="220" font-size="10" fill="var(--text-2)" text-anchor="middle">2024</text>
+                  <text x="814" y="220" font-size="10" fill="var(--text-2)" text-anchor="middle">2026</text>
+                </svg>
+              </div>
+            </article>
+
+            <!-- B3 Health scores grid -->
+            <article class="card" aria-labelledby="scores-title">
+              <div class="card-head">
+                <div class="left-stack">
+                  <span class="title" id="scores-title">Key Health Scores</span>
+                  <span class="sub">Most recent values · trends</span>
+                </div>
+              </div>
+
+              <div class="score-grid">
+                <div class="score-cell">
+                  <span class="label">HbA1c</span>
+                  <div class="score-num-row">
+                    <span class="score-num">7.0%</span>
+                    <span class="trend-glyph trend-good" aria-label="Improving">▲</span>
+                  </div>
+                  <span class="score-status">At target · Apr 21, 2026</span>
+                  <svg class="spark" viewBox="0 0 60 20" preserveAspectRatio="none" aria-hidden="true">
+                    <polyline points="2,4 14,7 26,11 38,14 50,16 58,16" fill="none" stroke="#E8985F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+
+                <div class="score-cell">
+                  <span class="label">MoCA</span>
+                  <div class="score-num-row">
+                    <span class="score-num">22 / 30</span>
+                    <span class="trend-glyph trend-caution" aria-label="Declining">▼</span>
+                  </div>
+                  <span class="score-status">MCI · Mar 10, 2026</span>
+                  <svg class="spark" viewBox="0 0 60 20" preserveAspectRatio="none" aria-hidden="true">
+                    <polyline points="2,6 28,12 58,16" fill="none" stroke="#4F90B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+
+                <div class="score-cell">
+                  <span class="label">KDIGO</span>
+                  <div class="score-num-row">
+                    <span class="score-num text-num">G2 A1</span>
+                    <span class="trend-glyph trend-stable" aria-label="Stable">―</span>
+                  </div>
+                  <span class="score-status">Stable · Apr 21, 2026</span>
+                  <svg class="spark" viewBox="0 0 60 20" preserveAspectRatio="none" aria-hidden="true">
+                    <polyline points="2,12 14,11 26,12 38,12 50,11 58,12" fill="none" stroke="#8B7BB8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </article>
+
+          </div>
+
+          <!-- ────── Right: Provider-only panels ────── -->
+          <div class="right-col">
+
+            <!-- R1 Risk Adjustment -->
+            <article class="card panel-card" aria-labelledby="ra-title">
+              <div class="card-head">
+                <div class="left-stack">
+                  <span class="title" id="ra-title">
+                    Risk Adjustment
+                    <button type="button" class="help-q" title="CMS Hierarchical Condition Category (HCC) suggestions based on documented and clinically-implied conditions in the patient's chart. All suggestions require clinician review before any change is made to documentation." aria-label="About Risk Adjustment">?</button>
+                  </span>
+                </div>
+                <a class="head-link" href="#">Open Risk Adjustment →</a>
+              </div>
+
+              <div class="summary-row">
+                <div class="summary-left">
+                  <span class="label">Current RAF score</span>
+                  <div class="num">1.84</div>
+                  <span class="cap">prior year 1.62 · +0.22</span>
+                </div>
+                <span class="summary-right">3 suggestions · 1 documented this year</span>
+              </div>
+
+              <div class="suggestion-list">
+
+                <div class="suggestion">
+                  <div class="sug-top">
+                    <span class="sug-top-left">
+                      <span class="code-tag">E11.22</span>
+                      <span class="sug-descriptor">Type 2 diabetes with diabetic CKD</span>
+                    </span>
+                    <span class="pill pill-suggested">Suggested</span>
+                  </div>
+                  <p class="evidence">Evidence: Currently coded E11.9. eGFR 63 (G2), persistent UACR, lisinopril for renal protection.</p>
+                  <div class="sug-bottom">
+                    <span class="hcc-note">→ HCC 18 (vs current HCC 19)</span>
+                    <a class="review-link" href="#">Review →</a>
+                  </div>
+                </div>
+
+                <div class="suggestion">
+                  <div class="sug-top">
+                    <span class="sug-top-left">
+                      <span class="code-tag">R29.6</span>
+                      <span class="sug-descriptor">Repeated falls / falls risk</span>
+                    </span>
+                    <span class="pill pill-suggested">Suggested</span>
+                  </div>
+                  <p class="evidence">Evidence: Falls-risk assessment Feb 2026; age 73 with MCI; documented in PT note.</p>
+                  <div class="sug-bottom">
+                    <span class="hcc-note">→ supporting documentation</span>
+                    <a class="review-link" href="#">Review →</a>
+                  </div>
+                </div>
+
+                <div class="suggestion">
+                  <div class="sug-top">
+                    <span class="sug-top-left">
+                      <span class="code-tag">G31.84</span>
+                      <span class="sug-descriptor">Mild Cognitive Impairment</span>
+                    </span>
+                    <span class="pill pill-documented">Documented</span>
+                  </div>
+                  <p class="evidence">Evidence: Neurology note Mar 10, 2026. MoCA trajectory 26 → 22 over 19 months.</p>
+                  <div class="sug-bottom">
+                    <span class="hcc-note">→ informational (not currently HCC)</span>
+                    <a class="review-link" href="#">Review →</a>
+                  </div>
+                </div>
+
+              </div>
+            </article>
+
+            <!-- R2 Problem-List Review -->
+            <article class="card panel-card" aria-labelledby="pl-title">
+              <div class="card-head">
+                <div class="left-stack">
+                  <span class="title" id="pl-title">
+                    Problem-List Review
+                    <button type="button" class="help-q" title="Conditions implied by clinical data but not yet on the patient's problem list, with the underlying evidence cited. Each suggestion requires clinician review before any change is made to the record." aria-label="About Problem-List Review">?</button>
+                  </span>
+                </div>
+                <a class="head-link" href="#">Open Problem-List Review →</a>
+              </div>
+
+              <div class="suggestion-list" style="border-top: 0; margin-top: 4px;">
+
+                <div class="suggestion">
+                  <div class="sug-top">
+                    <span class="sug-top-left">
+                      <svg class="plus-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14"/>
+                      </svg>
+                      <span class="sug-descriptor">Cerebrovascular disease (small-vessel ischemic)</span>
+                    </span>
+                    <span class="pill pill-implied">Implied · not on list</span>
+                  </div>
+                  <p class="evidence">Evidence: MRI brain Aug 14, 2024 — "consistent with chronic small-vessel ischemic disease." Repeat MRI Aug 22, 2025 stable.</p>
+                  <div class="sug-bottom">
+                    <span></span>
+                    <a class="review-link" href="#">Review evidence →</a>
+                  </div>
+                </div>
+
+                <div class="suggestion">
+                  <div class="sug-top">
+                    <span class="sug-top-left">
+                      <svg class="plus-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14"/>
+                      </svg>
+                      <span class="sug-descriptor">History of severe hypoglycemia</span>
+                    </span>
+                    <span class="pill pill-implied">Implied · not on list</span>
+                  </div>
+                  <p class="evidence">Evidence: ED visit Dec 4, 2022 — hypoglycemic episode on glipizide. Drove discontinuation of glipizide. Important context for current diabetes regimen.</p>
+                  <div class="sug-bottom">
+                    <span></span>
+                    <a class="review-link" href="#">Review evidence →</a>
+                  </div>
+                </div>
+
+              </div>
+            </article>
+
+          </div>
+        </section>
+
+        <!-- ───────── Companion CTA ───────── -->
+        <article class="companion-cta">
+          <div class="companion-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0E5C6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/>
+            </svg>
+          </div>
+          <div class="companion-text">
+            <strong>Have a question about this patient's record?</strong>
+            <span>The Companion answers in clinical vocabulary with citation evidence from this patient's chart. Refusal taxonomy and audit logging apply.</span>
+          </div>
+          <button class="btn-primary" type="button">Ask the Companion</button>
+        </article>
+
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
