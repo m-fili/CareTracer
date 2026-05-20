@@ -1,12 +1,434 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0; url=Patient Home.html" />
-  <title>Redirecting...</title>
+<meta charset="utf-8" />
+<title>CareTracer — Sign in</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --teal: #0E5C6F;
+    --teal-soft: #B3D9DF;
+    --warm-white: #FBFAF7;
+    --surface: #FFFFFF;
+    --surface-alt: #F4F6F8;
+    --border: #E5EAEE;
+    --text: #1B2330;
+    --text-2: #6B7785;
+    --good: #6FA88D;
+    --alert: #C56B72;
+
+    --card-shadow: 0 1px 2px rgba(27,35,48,0.04), 0 12px 28px rgba(27,35,48,0.06);
+    --card-radius: 14px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--warm-white);
+    color: var(--text);
+    font: 400 16px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "tnum";
+    overflow-x: hidden;
+  }
+  a { color: var(--teal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  button:focus-visible, input:focus-visible, a:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ───────── Background ───────── */
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(1000px 600px at 90% -10%, rgba(179, 217, 223, 0.32) 0%, rgba(179, 217, 223, 0) 60%),
+      radial-gradient(900px 600px at 0% 110%, rgba(111, 168, 141, 0.20) 0%, rgba(111, 168, 141, 0) 65%),
+      linear-gradient(180deg, #FBFAF7 0%, #F4F8F8 100%);
+  }
+  .bg-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* ───────── Layout ───────── */
+  .stage {
+    position: relative;
+    z-index: 1;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 56px 24px 72px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--teal);
+    font-weight: 600;
+    font-size: 28px;
+    letter-spacing: -0.015em;
+    margin-bottom: 48px;
+  }
+  .brand svg { width: 30px; height: 30px; }
+
+  .intro {
+    width: 100%;
+    max-width: 760px;
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .intro h1 {
+    margin: 0 0 14px;
+    font-size: 52px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+  }
+  .intro p {
+    margin: 0 auto;
+    max-width: 560px;
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--text-2);
+  }
+
+  .signin-cue {
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin: 0 0 18px;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    width: 100%;
+    max-width: 880px;
+  }
+
+  /* ───────── Login cards ───────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    padding: 30px 28px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 3px;
+    background: var(--teal);
+  }
+  .card.provider::before { background: var(--good); }
+
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .icon-bubble {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(179, 217, 223, 0.40);
+    color: var(--teal);
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .card.provider .icon-bubble {
+    background: rgba(111, 168, 141, 0.22);
+    color: #3D6B57;
+  }
+  .icon-bubble svg { width: 20px; height: 20px; }
+
+  .card-titles { display: flex; flex-direction: column; gap: 2px; }
+  .card-titles h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .card-titles span {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.4;
+  }
+
+  form { display: flex; flex-direction: column; gap: 14px; margin: 0; }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+  input[type="text"], input[type="password"] {
+    height: 44px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 14px;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--text);
+    transition: border-color 120ms ease, background 120ms ease;
+  }
+  input[type="text"]:focus, input[type="password"]:focus {
+    outline: none;
+    background: var(--surface);
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(14, 92, 111, 0.12);
+  }
+
+  .btn-submit {
+    margin-top: 2px;
+    height: 44px;
+    border: 1px solid var(--teal);
+    background: var(--teal);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 120ms ease, transform 60ms ease;
+  }
+  .btn-submit:hover { background: #0a4c5c; }
+  .btn-submit:active { transform: translateY(1px); }
+  .btn-submit svg { width: 14px; height: 14px; }
+
+  .card.provider .btn-submit {
+    background: #3D6B57;
+    border-color: #3D6B57;
+  }
+  .card.provider .btn-submit:hover { background: #2f5544; }
+
+  .error {
+    font-size: 13px;
+    color: var(--alert);
+    min-height: 18px;
+    margin: -6px 0 0;
+    line-height: 1.4;
+  }
+  .error:empty { display: none; }
+
+  .footer-note {
+    margin-top: 48px;
+    font-size: 12px;
+    color: var(--text-2);
+    text-align: center;
+    max-width: 720px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 780px) {
+    .cards { grid-template-columns: 1fr; max-width: 460px; }
+    .intro h1 { font-size: 36px; }
+    .brand { font-size: 24px; }
+    .brand svg { width: 26px; height: 26px; }
+  }
+</style>
 </head>
 <body>
-  <p>Redirecting to the dashboard...</p>
-  <a href="Patient Home.html">Click here if you are not redirected.</a>
+
+  <!-- ───────── Background ───────── -->
+  <div class="bg" aria-hidden="true">
+    <svg class="bg-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <!-- Soft blob top-right -->
+      <ellipse cx="1320" cy="120" rx="320" ry="220" fill="#B3D9DF" fill-opacity="0.22"/>
+      <!-- Soft blob bottom-left -->
+      <ellipse cx="80" cy="820" rx="360" ry="260" fill="#6FA88D" fill-opacity="0.16"/>
+      <!-- Small floating dot motif -->
+      <circle cx="200" cy="140" r="6" fill="#0E5C6F" fill-opacity="0.10"/>
+      <circle cx="280" cy="200" r="3" fill="#0E5C6F" fill-opacity="0.14"/>
+      <circle cx="1200" cy="720" r="5" fill="#0E5C6F" fill-opacity="0.12"/>
+      <circle cx="1300" cy="780" r="3" fill="#0E5C6F" fill-opacity="0.18"/>
+      <!-- Calm ECG / pulse trace, low opacity -->
+      <path
+        d="M -20 720
+           L 200 720
+           L 240 720 L 260 700 L 280 740 L 300 660 L 320 780 L 340 720
+           L 580 720
+           L 620 720 L 640 700 L 660 740 L 680 660 L 700 780 L 720 720
+           L 980 720
+           L 1020 720 L 1040 700 L 1060 740 L 1080 660 L 1100 780 L 1120 720
+           L 1460 720"
+        fill="none"
+        stroke="#0E5C6F"
+        stroke-opacity="0.10"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <!-- Gentle hill at bottom -->
+      <path
+        d="M -20 900 L -20 820 Q 360 760 720 800 T 1460 820 L 1460 900 Z"
+        fill="#B3D9DF"
+        fill-opacity="0.18"
+      />
+    </svg>
+  </div>
+
+  <!-- ───────── Stage ───────── -->
+  <main class="stage">
+
+    <div class="brand" aria-label="CareTracer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M12 3v18M3 12h18"></path>
+      </svg>
+      CareTracer
+    </div>
+
+    <section class="intro">
+      <h1>Health information that makes sense</h1>
+      <p>Read your health like a story.</p>
+    </section>
+
+    <p class="signin-cue">Choose how you'd like to sign in.</p>
+
+    <section class="cards" aria-label="Sign in">
+
+      <!-- ────── Patient card ────── -->
+      <article class="card patient" aria-labelledby="patient-title">
+        <div class="card-head">
+          <span class="icon-bubble" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
+            </svg>
+          </span>
+          <div class="card-titles">
+            <h2 id="patient-title">Patient</h2>
+            <span>Your unified health record</span>
+          </div>
+        </div>
+
+        <form id="patient-form" novalidate>
+          <label>
+            Username
+            <input type="text" name="username" autocomplete="username" required />
+          </label>
+          <label>
+            Password
+            <input type="password" name="password" autocomplete="current-password" required />
+          </label>
+          <p class="error" role="alert" data-error></p>
+          <button type="submit" class="btn-submit">
+            Sign in as Patient
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M13 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </form>
+
+      </article>
+
+      <!-- ────── Provider card ────── -->
+      <article class="card provider" aria-labelledby="provider-title">
+        <div class="card-head">
+          <span class="icon-bubble" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3v6a4 4 0 0 0 8 0V3"/>
+              <path d="M6 3h2M12 3h2"/>
+              <path d="M10 13v3a4 4 0 0 0 8 0v-2"/>
+              <circle cx="18" cy="11" r="2"/>
+            </svg>
+          </span>
+          <div class="card-titles">
+            <h2 id="provider-title">Provider</h2>
+            <span>Panel &amp; population view for care teams</span>
+          </div>
+        </div>
+
+        <form id="provider-form" novalidate>
+          <label>
+            Username
+            <input type="text" name="username" autocomplete="username" required />
+          </label>
+          <label>
+            Password
+            <input type="password" name="password" autocomplete="current-password" required />
+          </label>
+          <p class="error" role="alert" data-error></p>
+          <button type="submit" class="btn-submit">
+            Sign in as Provider
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M13 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </form>
+
+      </article>
+
+    </section>
+
+    <p class="footer-note">CareTracer is a wireframe prototype for demonstration only. All patient data shown is synthetic.</p>
+
+  </main>
+
+  <script src="auth.js"></script>
+  <script>
+    (function () {
+      function wire(formId, role, landing) {
+        var form = document.getElementById(formId);
+        if (!form) return;
+        var errorEl = form.querySelector("[data-error]");
+        form.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var u = form.elements.username.value;
+          var p = form.elements.password.value;
+          if (!u || !p) {
+            errorEl.textContent = "Please enter both a username and a password.";
+            return;
+          }
+          if (window.CareTracerAuth.login(u, p, role)) {
+            errorEl.textContent = "";
+            location.assign(landing);
+          } else {
+            errorEl.textContent = "That username and password didn't match. Try the demo credentials below.";
+          }
+        });
+      }
+      wire("patient-form", "patient", "patient-home.html");
+      wire("provider-form", "provider", "provider-mode.html");
+    })();
+  </script>
+
 </body>
 </html>
