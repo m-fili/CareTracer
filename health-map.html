@@ -187,7 +187,7 @@
     padding: 4px;
     gap: 2px;
   }
-  .seg button {
+  .seg button, .seg a {
     background: transparent; border: none;
     font-family: inherit; font-size: 13px; color: var(--text);
     height: 32px; padding: 0 14px;
@@ -195,12 +195,17 @@
     cursor: pointer;
     font-weight: 400;
     line-height: 1;
+    display: inline-flex; align-items: center;
+    text-decoration: none;
   }
-  .seg button.is-selected {
+  .seg a:hover { text-decoration: none; background: rgba(179,217,223,0.20); }
+  .seg button.is-selected, .seg a.is-selected {
     background: var(--surface);
     font-weight: 500;
     box-shadow: 0 1px 2px rgba(27,35,48,0.08);
+    color: var(--text);
   }
+  .seg a.is-selected:hover { background: var(--surface); }
 
   /* ───────── Map card ───────── */
   .card {
@@ -352,8 +357,8 @@
           <div class="control-group">
             <span class="control-label">Range:</span>
             <div class="seg" role="group" aria-label="Time range">
-              <button type="button" class="is-selected">All time</button>
-              <button type="button">Last 5 years</button>
+              <a href="health-map.html" class="is-selected" aria-current="page">All time</a>
+              <a href="health-map-5y.html">Last 5 years</a>
               <button type="button">Last year</button>
             </div>
           </div>
