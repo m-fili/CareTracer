@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="auth.js"></script>
+<script>window.CareTracerAuth && window.CareTracerAuth.require("patient");</script>
+<meta charset="utf-8" />
+<title>CareTracer — Share with Doctor</title>
+<meta name="viewport" content="width=1440" />
+<style>
+  :root {
+    --teal: #0E5C6F;
+    --teal-soft: #B3D9DF;
+    --warm-white: #FBFAF7;
+    --surface: #FFFFFF;
+    --surface-alt: #F4F6F8;
+    --panel-bg: #F8F9FB;
+    --border: #E5EAEE;
+    --text: #1B2330;
+    --text-2: #6B7785;
+    --good: #6FA88D;
+
+    --pill-active-bg: rgba(111, 168, 141, 0.20);
+    --pill-active-fg: #3D6B57;
+    --pill-expired-bg: #E5EAEE;
+    --pill-expired-fg: #6B7785;
+    --pill-revoked-bg: rgba(212, 154, 78, 0.20);
+    --pill-revoked-fg: #8A5E2D;
+
+    --card-shadow: 0 1px 2px rgba(27,35,48,0.04), 0 2px 4px rgba(27,35,48,0.04);
+    --card-radius: 12px;
+    --page-pad-x: 32px;
+    --page-pad-y: 24px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--warm-white);
+    color: var(--text);
+    font: 400 16px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "tnum";
+  }
+  a { color: var(--teal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ───────── Shell ───────── */
+  .shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  /* ───────── Sidebar ───────── */
+  .sidebar {
+    background: var(--surface-alt);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  .wordmark {
+    padding: 24px 24px 28px;
+    color: var(--teal);
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .wordmark .mark { width: 22px; height: 22px; flex: none; }
+  .nav { display: flex; flex-direction: column; padding: 0 12px; gap: 2px; }
+  .nav a {
+    display: flex; align-items: center; gap: 12px;
+    height: 44px; padding: 0 12px;
+    color: var(--text);
+    font-size: 16px;
+    border-radius: 6px;
+    position: relative;
+  }
+  .nav a:hover { background: rgba(179, 217, 223, 0.25); text-decoration: none; }
+  .nav a svg { width: 16px; height: 16px; color: var(--text-2); flex: none; }
+  .nav a.is-selected {
+    background: rgba(179, 217, 223, 0.30);
+    color: var(--teal);
+    font-weight: 500;
+  }
+  .nav a.is-selected svg { color: var(--teal); }
+  .nav a.is-selected::before {
+    content: "";
+    position: absolute; left: -12px; top: 8px; bottom: 8px;
+    width: 3px; background: var(--teal); border-radius: 0 2px 2px 0;
+  }
+
+  /* ───────── Topbar ───────── */
+  .main { display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 64px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--page-pad-x);
+  }
+  .topbar h1 { margin: 0; font-size: 20px; font-weight: 600; color: var(--text); }
+  .topbar-right { display: flex; align-items: center; gap: 24px; }
+  .last-updated { font-size: 14px; color: var(--text-2); }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--teal); color: #fff;
+    font-size: 14px; font-weight: 600;
+    display: grid; place-items: center;
+    letter-spacing: 0.02em;
+  }
+
+  /* ───────── Content ───────── */
+  .content {
+    padding: var(--page-pad-y) var(--page-pad-x);
+    display: flex; flex-direction: column;
+    gap: 20px;
+  }
+  .page-header { margin-bottom: 8px; }
+  .page-header h2 {
+    margin: 0 0 6px;
+    font-size: 28px; font-weight: 600; color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .page-header p.subhead {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-2);
+    max-width: 920px;
+  }
+  .page-header p.sample {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--text-2);
+    font-style: italic;
+  }
+
+  /* ───────── Active share card ───────── */
+  .share-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    padding: 28px;
+  }
+  .share-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .share-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 12px;
+    line-height: 1;
+  }
+  .pill-active   { background: var(--pill-active-bg);   color: var(--pill-active-fg); }
+  .pill-expired  { background: var(--pill-expired-bg);  color: var(--pill-expired-fg); }
+  .pill-revoked  { background: var(--pill-revoked-bg);  color: var(--pill-revoked-fg); }
+  .pill-active .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--good);
+    flex: none;
+  }
+  .share-header-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .revoke-link {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--teal);
+  }
+
+  /* ───────── Code centerpiece ───────── */
+  .code-box {
+    margin: 0 auto;
+    max-width: 480px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .code-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+  .code {
+    font-family: ui-monospace, SFMono-Regular, "Menlo", "Consolas", monospace;
+    font-size: 44px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.15em;
+    line-height: 1.1;
+    margin: 0;
+    font-feature-settings: "tnum";
+  }
+  .code .gap { display: inline-block; width: 0.45em; }
+  .code-action,
+  .link-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--teal);
+    background: transparent;
+    border: 0;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .code-action:hover, .link-action:hover { background: rgba(179, 217, 223, 0.20); }
+  .code-action svg, .link-action svg { width: 12px; height: 12px; }
+
+  /* ───────── Link URL row ───────── */
+  .link-row {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .link-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    flex: none;
+  }
+  .link-url {
+    flex: 1 1 auto;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: ui-monospace, SFMono-Regular, "Menlo", "Consolas", monospace;
+    font-size: 14px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ───────── Expiration line ───────── */
+  .expires-row {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .expires-row svg { width: 14px; height: 14px; color: var(--text-2); flex: none; }
+
+  /* ───────── Two-column subsection ───────── */
+  .hairline {
+    border: 0; height: 1px;
+    background: var(--border);
+    margin: 24px 0;
+  }
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .col-heading {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .col-subhead {
+    margin: 0 0 14px;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+
+  /* How-to steps */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .step-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .step-num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    display: grid;
+    place-items: center;
+    flex: none;
+    line-height: 1;
+  }
+  .step-text { display: flex; flex-direction: column; gap: 2px; }
+  .step-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .step-detail { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+
+  /* Pillar list */
+  .pillar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pillar-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .pillar-row svg.check {
+    width: 14px; height: 14px;
+    color: var(--teal);
+    flex: none;
+    margin-top: 3px;
+  }
+  .pillar-text { display: flex; flex-direction: column; gap: 2px; }
+  .pillar-title { font-size: 14px; font-weight: 500; color: var(--text); }
+  .pillar-sub { font-size: 12px; color: var(--text-2); }
+  .doctor-note {
+    margin: 14px 0 0;
+    font-size: 12px;
+    color: var(--text-2);
+    font-style: italic;
+  }
+
+  /* ───────── Create another button ───────── */
+  .create-row {
+    display: flex;
+    justify-content: center;
+  }
+  .btn-create {
+    background: transparent;
+    color: var(--teal);
+    border: 1px dashed var(--teal);
+    font-size: 14px; font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-create:hover { background: rgba(179, 217, 223, 0.20); }
+
+  /* ───────── Past shares ───────── */
+  .past-section { margin-top: 12px; }
+  .past-heading {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.005em;
+  }
+  .past-subhead {
+    margin: 0 0 14px;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .past-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .past-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .past-left { display: flex; flex-direction: column; gap: 4px; }
+  .past-top { font-size: 14px; font-weight: 500; color: var(--text); }
+  .past-bottom { font-size: 12px; color: var(--text-2); }
+
+  /* ───────── Companion CTA ───────── */
+  .companion-cta {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+  }
+  .companion-icon {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: rgba(179, 217, 223, 0.30);
+    display: grid; place-items: center;
+    flex: none;
+  }
+  .companion-text {
+    flex: 1 1 auto;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .companion-text strong { font-size: 15px; font-weight: 600; color: var(--text); }
+  .companion-text span { font-size: 13px; color: var(--text-2); }
+  .btn-primary {
+    background: var(--teal); color: #fff;
+    border: 1px solid var(--teal);
+    font-size: 14px; font-weight: 600;
+    padding: 10px 20px; border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    flex: none;
+  }
+  .btn-primary:hover { background: #0a4c5c; }
+</style>
+</head>
+<body>
+
+  <div class="shell" data-screen-label="Share with Doctor">
+    <!-- ───────── Sidebar ───────── -->
+    <aside class="sidebar">
+      <div class="wordmark">
+        <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 3v18M3 12h18"></path>
+        </svg>
+        CareTracer
+      </div>
+      <nav class="nav" aria-label="Primary">
+        <a href="patient-home.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"></path><path d="M5 9v12h14V9"></path></svg>
+          Home
+        </a>
+        <a href="health-map.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path d="M6 8v4a4 4 0 0 0 4 4h4"></path></svg>
+          My Health Map
+        </a>
+        <a href="health-scores.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-9"></path></svg>
+          Health Scores
+        </a>
+        <a href="companion.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"></path></svg>
+          Companion
+        </a>
+        <a href="care-compass.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M15 9l-2 5-5 2 2-5 5-2z"></path></svg>
+          Care Compass
+        </a>
+        <a href="care-partners.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="10" r="2"></circle><path d="M3 20c0-3 3-5 6-5s6 2 6 5"></path><path d="M15 20c0-2 2-3.5 4-3.5s2 1 2 2"></path></svg>
+          Care Partners
+        </a>
+        <a href="share-with-doctor.html" class="is-selected" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v14"></path></svg>
+          Share with Doctor
+        </a>
+        <a href="#settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+          Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- ───────── Main ───────── -->
+    <div class="main">
+      <header class="topbar">
+        <h1>Share with Doctor</h1>
+        <div class="topbar-right">
+          <span class="last-updated">Last updated May 12, 2026</span>
+          <div class="avatar" aria-label="John Doe">JD</div>
+        </div>
+      </header>
+
+      <div class="content">
+
+        <section class="page-header">
+          <h2>Share with Doctor</h2>
+          <p class="subhead">Generate a time-limited, encrypted snapshot of your record to give to any clinician. The link only opens when paired with a six-digit code that you share separately, so the two halves never travel together.</p>
+          <p class="sample">This is a sample patient record for demonstration only. All data is synthetic.</p>
+        </section>
+
+        <!-- ───────── Active share card ───────── -->
+        <article class="share-card" aria-labelledby="share-ready">
+
+          <header class="share-header">
+            <div class="share-header-left">
+              <span class="pill pill-active">
+                <span class="dot" aria-hidden="true"></span>
+                Active
+              </span>
+              <span class="share-header-label" id="share-ready">Your secure link is ready</span>
+            </div>
+            <a class="revoke-link" href="#" aria-label="Revoke this active share immediately">Revoke this share</a>
+          </header>
+
+          <!-- 4b. Code centerpiece -->
+          <div class="code-box">
+            <span class="code-eyebrow">Access code</span>
+            <p class="code" aria-label="Access code seven four two nine one five">742<span class="gap"></span>915</p>
+            <button type="button" class="code-action" aria-label="Copy the access code to clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="9" y="9" width="12" height="12" rx="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              Copy code
+            </button>
+          </div>
+
+          <!-- 4c. Link URL row -->
+          <div class="link-row">
+            <span class="link-eyebrow">Link</span>
+            <span class="link-url">caretracer.app/share/x7K9pT4nQm</span>
+            <button type="button" class="link-action" aria-label="Copy the share link to clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="9" y="9" width="12" height="12" rx="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+              Copy link
+            </button>
+          </div>
+
+          <!-- 4d. Expiration -->
+          <div class="expires-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 7v5l3 2"/>
+            </svg>
+            Expires in 4 hours 58 minutes · at 4:12 PM today (May 19, 2026)
+          </div>
+
+          <hr class="hairline" />
+
+          <!-- 4e. Two-column subsection -->
+          <div class="two-col">
+
+            <section aria-labelledby="how-to-share">
+              <h4 class="col-heading" id="how-to-share">How to share this with your doctor</h4>
+              <div class="steps">
+                <div class="step-row">
+                  <span class="step-num" aria-hidden="true">1</span>
+                  <div class="step-text">
+                    <span class="step-title">Send the link to your doctor</span>
+                    <span class="step-detail">Text, email, print, or hand-deliver. The link by itself does not open the record.</span>
+                  </div>
+                </div>
+                <div class="step-row">
+                  <span class="step-num" aria-hidden="true">2</span>
+                  <div class="step-text">
+                    <span class="step-title">Share the six-digit code separately</span>
+                    <span class="step-detail">Call, read aloud, or text via a different channel. Keeping the two halves apart is what makes the share secure.</span>
+                  </div>
+                </div>
+                <div class="step-row">
+                  <span class="step-num" aria-hidden="true">3</span>
+                  <div class="step-text">
+                    <span class="step-title">Your doctor opens the link and enters the code</span>
+                    <span class="step-detail">They see a read-only snapshot of your record for the duration of the share window.</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section aria-labelledby="what-doctor-sees">
+              <h4 class="col-heading" id="what-doctor-sees">What your doctor will see</h4>
+              <p class="col-subhead">Your full unified record, read-only, for the duration of the share.</p>
+              <div class="pillar-list">
+                <div class="pillar-row">
+                  <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+                  <div class="pillar-text">
+                    <span class="pillar-title">Longitudinal Health Map</span>
+                    <span class="pillar-sub">17 years of records across 2 health systems</span>
+                  </div>
+                </div>
+                <div class="pillar-row">
+                  <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+                  <div class="pillar-text">
+                    <span class="pillar-title">Health Scores</span>
+                    <span class="pillar-sub">Trended measurements and validated clinical scores</span>
+                  </div>
+                </div>
+                <div class="pillar-row">
+                  <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+                  <div class="pillar-text">
+                    <span class="pillar-title">Care Compass items</span>
+                    <span class="pillar-sub">Forward-looking discussion items with guideline citations</span>
+                  </div>
+                </div>
+                <div class="pillar-row">
+                  <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>
+                  <div class="pillar-text">
+                    <span class="pillar-title">Clinical notes and medication list</span>
+                    <span class="pillar-sub">Full visit notes, current medications, and recent labs</span>
+                  </div>
+                </div>
+              </div>
+              <p class="doctor-note">Your doctor cannot make changes to your record. Anything they take action on happens in their own system.</p>
+            </section>
+
+          </div>
+        </article>
+
+        <!-- ───────── Create another secure share ───────── -->
+        <div class="create-row">
+          <button type="button" class="btn-create">+ Create another secure share</button>
+        </div>
+
+        <!-- ───────── Past shares ───────── -->
+        <section class="past-section" aria-labelledby="past-heading">
+          <h3 class="past-heading" id="past-heading">Past shares</h3>
+          <p class="past-subhead">Previous secure links you have created. Each was time-limited and is no longer accessible.</p>
+          <div class="past-list">
+
+            <article class="past-row">
+              <div class="past-left">
+                <span class="past-top">Created May 18, 2026 · 10:42 AM</span>
+                <span class="past-bottom">Expired May 18, 2026 · 3:42 PM</span>
+              </div>
+              <span class="pill pill-expired">Expired</span>
+            </article>
+
+            <article class="past-row">
+              <div class="past-left">
+                <span class="past-top">Created May 14, 2026 · 2:33 PM</span>
+                <span class="past-bottom">Revoked by you May 14, 2026 · 4:08 PM</span>
+              </div>
+              <span class="pill pill-revoked">Revoked</span>
+            </article>
+
+          </div>
+        </section>
+
+        <!-- ───────── Companion CTA ───────── -->
+        <article class="companion-cta">
+          <div class="companion-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0E5C6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/>
+            </svg>
+          </div>
+          <div class="companion-text">
+            <strong>Have a question about sharing?</strong>
+            <span>The Companion can explain how the secure link works, what the doctor will see, and how to revoke a share if you change your mind.</span>
+          </div>
+          <button class="btn-primary" type="button">Ask the Companion</button>
+        </article>
+
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
