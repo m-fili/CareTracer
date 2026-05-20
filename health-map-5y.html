@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="auth.js"></script>
+<script>window.CareTracerAuth && window.CareTracerAuth.require("patient");</script>
+<meta charset="utf-8" />
+<title>CareTracer — Your Health Map (Last 5 Years)</title>
+<meta name="viewport" content="width=1440" />
+<style>
+  :root {
+    --teal: #0E5C6F;
+    --teal-soft: #B3D9DF;
+    --warm-white: #FBFAF7;
+    --surface: #FFFFFF;
+    --surface-alt: #F4F6F8;
+    --border: #E5EAEE;
+    --text: #1B2330;
+    --text-2: #6B7785;
+    --good: #6FA88D;
+    --caution: #D49A4E;
+    --track-cog: #4F90B8;
+    --track-gly: #E8985F;
+    --track-cv:  #D55D5D;
+    --track-kid: #8B7BB8;
+    --track-prev: #7C9BAA;
+
+    --card-shadow: 0 1px 2px rgba(27,35,48,0.04), 0 2px 4px rgba(27,35,48,0.04);
+    --card-pad: 24px;
+    --card-radius: 12px;
+    --row-gap: 20px;
+    --page-pad-x: 32px;
+    --page-pad-y: 24px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--warm-white);
+    color: var(--text);
+    font: 400 16px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "tnum";
+  }
+  a { color: var(--teal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ───────── Shell ───────── */
+  .shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  /* ───────── Sidebar ───────── */
+  .sidebar {
+    background: var(--surface-alt);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  .wordmark {
+    padding: 24px 24px 28px;
+    color: var(--teal);
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .wordmark .mark { width: 22px; height: 22px; flex: none; }
+  .nav { display: flex; flex-direction: column; padding: 0 12px; gap: 2px; }
+  .nav a {
+    display: flex; align-items: center; gap: 12px;
+    height: 44px; padding: 0 12px;
+    color: var(--text);
+    font-size: 16px;
+    border-radius: 6px;
+    position: relative;
+  }
+  .nav a:hover { background: rgba(179, 217, 223, 0.25); text-decoration: none; }
+  .nav a svg { width: 16px; height: 16px; color: var(--text-2); flex: none; }
+  .nav a.is-selected {
+    background: rgba(179, 217, 223, 0.30);
+    color: var(--teal);
+    font-weight: 500;
+  }
+  .nav a.is-selected svg { color: var(--teal); }
+  .nav a.is-selected::before {
+    content: "";
+    position: absolute; left: -12px; top: 8px; bottom: 8px;
+    width: 3px; background: var(--teal); border-radius: 0 2px 2px 0;
+  }
+
+  /* ───────── Topbar ───────── */
+  .main { display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 64px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--page-pad-x);
+  }
+  .topbar h1 { margin: 0; font-size: 20px; font-weight: 600; color: var(--text); }
+  .topbar-right { display: flex; align-items: center; gap: 24px; }
+  .last-updated { font-size: 14px; color: var(--text-2); }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--teal); color: #fff;
+    font-size: 14px; font-weight: 600;
+    display: grid; place-items: center;
+    letter-spacing: 0.02em;
+  }
+
+  /* ───────── Content ───────── */
+  .content {
+    padding: var(--page-pad-y) var(--page-pad-x);
+    display: flex; flex-direction: column;
+    gap: var(--row-gap);
+  }
+  .page-header h2 {
+    margin: 0 0 6px;
+    font-size: 28px; font-weight: 600; color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .page-header p.subhead {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-2);
+    max-width: 880px;
+  }
+  .page-header p.sample {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--text-2);
+    font-style: italic;
+  }
+
+  /* ───────── Control bar ───────── */
+  .controls {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: -4px;
+  }
+  .control-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .control-label { font-size: 14px; color: var(--text-2); white-space: nowrap; }
+
+  .chip-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .chip-filter {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 32px;
+    padding: 0 16px;
+    font-size: 14px; font-weight: 400;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1;
+  }
+  .chip-filter:hover { background: var(--surface-alt); }
+  .chip-filter .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .chip-filter.is-selected {
+    background: var(--teal);
+    color: #fff;
+    border-color: var(--teal);
+    font-weight: 500;
+  }
+  .chip-filter.is-selected .dot { display: none; }
+
+  .seg {
+    display: inline-flex;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+    gap: 2px;
+  }
+  .seg button, .seg a {
+    background: transparent; border: none;
+    font-family: inherit; font-size: 13px; color: var(--text);
+    height: 32px; padding: 0 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 400;
+    line-height: 1;
+    display: inline-flex; align-items: center;
+    text-decoration: none;
+  }
+  .seg a:hover { text-decoration: none; background: rgba(179,217,223,0.20); }
+  .seg button.is-selected, .seg a.is-selected {
+    background: var(--surface);
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(27,35,48,0.08);
+    color: var(--text);
+  }
+  .seg a.is-selected:hover { background: var(--surface); }
+
+  /* ───────── Map card ───────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    padding: var(--card-pad);
+  }
+  .map-card { padding: 24px; }
+  .map-svg-wrap {
+    width: 100%;
+    aspect-ratio: 1240 / 480;
+  }
+  .map-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  .station, .fwd-station { cursor: pointer; }
+  .station:hover circle:first-of-type,
+  .fwd-station:hover circle:first-of-type { filter: brightness(0.92); }
+
+  .hint {
+    font-size: 14px;
+    color: var(--text-2);
+    margin-top: -4px;
+  }
+
+  /* ───────── Inline Companion CTA ───────── */
+  .companion-cta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 24px;
+  }
+  .companion-icon {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: rgba(179, 217, 223, 0.30);
+    display: grid; place-items: center;
+    flex: none;
+  }
+  .companion-text {
+    flex: 1 1 auto;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .companion-text strong { font-size: 15px; font-weight: 600; color: var(--text); }
+  .companion-text span { font-size: 13px; color: var(--text-2); }
+  .btn-primary {
+    background: var(--teal); color: #fff;
+    border: 1px solid var(--teal);
+    font-size: 14px; font-weight: 600;
+    padding: 10px 20px; border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    flex: none;
+  }
+  .btn-primary:hover { background: #0a4c5c; }
+</style>
+</head>
+<body>
+
+  <div class="shell" data-screen-label="Health Map">
+    <!-- ───────── Sidebar ───────── -->
+    <aside class="sidebar">
+      <div class="wordmark">
+        <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 3v18M3 12h18"></path>
+        </svg>
+        CareTracer
+      </div>
+      <nav class="nav" aria-label="Primary">
+        <a href="patient-home.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"></path><path d="M5 9v12h14V9"></path></svg>
+          Home
+        </a>
+        <a href="#" class="is-selected" aria-current="page">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path d="M6 8v4a4 4 0 0 0 4 4h4"></path></svg>
+          My Health Map
+        </a>
+        <a href="health-scores.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-9"></path></svg>
+          Health Scores
+        </a>
+        <a href="companion.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"></path></svg>
+          Companion
+        </a>
+        <a href="care-compass.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M15 9l-2 5-5 2 2-5 5-2z"></path></svg>
+          Care Compass
+        </a>
+        <a href="care-partners.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="10" r="2"></circle><path d="M3 20c0-3 3-5 6-5s6 2 6 5"></path><path d="M15 20c0-2 2-3.5 4-3.5s2 1 2 2"></path></svg>
+          Care Partners
+        </a>
+        <a href="share-with-doctor.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v14"></path></svg>
+          Share with Doctor
+        </a>
+        <a href="#settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+          Settings
+        </a>
+      </nav>
+    </aside>
+
+    <!-- ───────── Main ───────── -->
+    <div class="main">
+      <header class="topbar">
+        <h1>Your Health Map</h1>
+        <div class="topbar-right">
+          <span class="last-updated">Last updated May 12, 2026</span>
+          <div class="avatar" aria-label="John Doe">JD</div>
+        </div>
+      </header>
+
+      <div class="content">
+
+        <section class="page-header">
+          <h2>Your Health Map</h2>
+          <p class="subhead">Showing the last 5 years (May 2021 — May 2027) across 4 conditions plus preventive care. Tap any station to open its details, or switch the range to see your full history.</p>
+          <p class="sample">This is a sample patient record for demonstration only. All data is synthetic.</p>
+        </section>
+
+        <section class="controls" aria-label="Map controls">
+          <div class="control-group">
+            <span class="control-label">Show:</span>
+            <div class="chip-row" role="group" aria-label="Condition filter">
+              <button type="button" class="chip-filter is-selected">All</button>
+              <button type="button" class="chip-filter">
+                <span class="dot" style="background: var(--track-cog);"></span>
+                Cognitive
+              </button>
+              <button type="button" class="chip-filter">
+                <span class="dot" style="background: var(--track-gly);"></span>
+                Glycemic
+              </button>
+              <button type="button" class="chip-filter">
+                <span class="dot" style="background: var(--track-cv);"></span>
+                Cardiovascular
+              </button>
+              <button type="button" class="chip-filter">
+                <span class="dot" style="background: var(--track-kid);"></span>
+                Kidney
+              </button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <span class="control-label">Range:</span>
+            <div class="seg" role="group" aria-label="Time range">
+              <a href="health-map.html">All time</a>
+              <a href="health-map-5y.html" class="is-selected" aria-current="page">Last 5 years</a>
+              <button type="button">Last year</button>
+            </div>
+          </div>
+        </section>
+
+        <article class="card map-card">
+          <div class="map-svg-wrap">
+            <svg class="map-svg" viewBox="0 0 1240 480" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Health map zoomed to the last 5 years: events from May 2021 through May 2027 with no overlap.">
+
+              <!-- ═════ Today marker (May 2026 → x=1040) ═════ -->
+              <line x1="1040" y1="50" x2="1040" y2="395" stroke="#1B2330" stroke-opacity="0.25" stroke-width="1.5" stroke-dasharray="4 3"/>
+              <rect x="1026" y="26" width="28" height="20" rx="4" fill="#FBFAF7"/>
+              <text x="1040" y="40" font-size="11" font-weight="600" fill="#1B2330" text-anchor="middle">Today</text>
+
+              <!-- ═════ Tracks (solid past + dashed future), split at x=1040 ═════ -->
+              <line x1="80" y1="80"  x2="1040" y2="80"  stroke="var(--track-cog)"  stroke-width="5" stroke-linecap="round"/>
+              <line x1="1040" y1="80"  x2="1232" y2="80"  stroke="var(--track-cog)"  stroke-width="5" stroke-linecap="round" stroke-dasharray="6 6" stroke-opacity="0.7"/>
+              <line x1="80" y1="150" x2="1040" y2="150" stroke="var(--track-gly)"  stroke-width="5" stroke-linecap="round"/>
+              <line x1="1040" y1="150" x2="1232" y2="150" stroke="var(--track-gly)"  stroke-width="5" stroke-linecap="round" stroke-dasharray="6 6" stroke-opacity="0.7"/>
+              <line x1="80" y1="220" x2="1040" y2="220" stroke="var(--track-cv)"   stroke-width="5" stroke-linecap="round"/>
+              <line x1="1040" y1="220" x2="1232" y2="220" stroke="var(--track-cv)"   stroke-width="5" stroke-linecap="round" stroke-dasharray="6 6" stroke-opacity="0.7"/>
+              <line x1="80" y1="290" x2="1040" y2="290" stroke="var(--track-kid)"  stroke-width="5" stroke-linecap="round"/>
+              <line x1="1040" y1="290" x2="1232" y2="290" stroke="var(--track-kid)"  stroke-width="5" stroke-linecap="round" stroke-dasharray="6 6" stroke-opacity="0.7"/>
+              <line x1="80" y1="360" x2="1040" y2="360" stroke="var(--track-prev)" stroke-width="5" stroke-linecap="round"/>
+              <line x1="1040" y1="360" x2="1232" y2="360" stroke="var(--track-prev)" stroke-width="5" stroke-linecap="round" stroke-dasharray="6 6" stroke-opacity="0.7"/>
+
+              <!-- ═════ Track labels ═════ -->
+              <text x="20" y="72"  font-size="12" font-weight="500" fill="#1B2330">Cognitive</text>
+              <text x="20" y="142" font-size="12" font-weight="500" fill="#1B2330">Glycemic</text>
+              <text x="20" y="212" font-size="12" font-weight="500" fill="#1B2330">Cardiovascular</text>
+              <text x="20" y="282" font-size="12" font-weight="500" fill="#1B2330">Kidney</text>
+              <text x="20" y="352" font-size="12" font-weight="500" fill="#1B2330">Preventive</text>
+
+              <!-- ═════ Transfer connector lines ═════ -->
+              <!-- Semaglutide (Mar 2024) — Gly ↔ CV ↔ Kidney (x=624) -->
+              <line x1="624" y1="150" x2="624" y2="290" stroke="#1B2330" stroke-opacity="0.2" stroke-width="1.5"/>
+              <!-- Brain MRI (Aug 2024) — Cog ↔ CV (x=704) -->
+              <line x1="704" y1="80"  x2="704" y2="220" stroke="#1B2330" stroke-opacity="0.2" stroke-width="1.5"/>
+
+              <!-- ═════ Cognitive (y=80) ═════ -->
+              <!-- MCI dx · Aug 2024 -->
+              <g class="station">
+                <circle cx="704" cy="80" r="9" fill="#FFFFFF" stroke="var(--track-cog)" stroke-width="2.5"/>
+                <circle cx="704" cy="80" r="4" fill="var(--track-cog)"/>
+                <text x="704" y="104" font-size="10.5" fill="#1B2330" text-anchor="middle">MCI dx</text>
+              </g>
+              <!-- Donepezil · Oct 2024 -->
+              <g class="station">
+                <circle cx="736" cy="80" r="7" fill="var(--track-cog)"/>
+                <text x="736" y="122" font-size="10.5" fill="#1B2330" text-anchor="middle">Donepezil</text>
+              </g>
+              <!-- MoCA · Aug 2025 -->
+              <g class="station">
+                <circle cx="896" cy="80" r="7" fill="var(--track-cog)"/>
+                <text x="896" y="104" font-size="10.5" fill="#1B2330" text-anchor="middle">MoCA</text>
+              </g>
+              <!-- MoCA · Mar 2026 -->
+              <g class="station">
+                <circle cx="1007" cy="80" r="7" fill="var(--track-cog)"/>
+                <text x="1007" y="104" font-size="10.5" fill="#1B2330" text-anchor="middle">MoCA</text>
+              </g>
+
+              <!-- ═════ Glycemic (y=150) ═════ -->
+              <!-- ED visit · Dec 2022 -->
+              <g class="station">
+                <circle cx="384" cy="150" r="7" fill="var(--track-gly)"/>
+                <text x="384" y="174" font-size="10.5" fill="#1B2330" text-anchor="middle">ED visit</text>
+              </g>
+              <!-- Semaglutide · Mar 2024 (transfer) -->
+              <a href="station-detail.html" class="station-link">
+                <g class="station">
+                  <circle cx="624" cy="150" r="9" fill="#FFFFFF" stroke="var(--track-gly)" stroke-width="2.5"/>
+                  <circle cx="624" cy="150" r="4" fill="var(--track-gly)"/>
+                  <text x="624" y="174" font-size="10.5" fill="#1B2330" text-anchor="middle">Semaglutide</text>
+                </g>
+              </a>
+              <!-- Eye exam · Apr 2024 (L2 to avoid Semaglutide label) -->
+              <g class="station">
+                <circle cx="656" cy="150" r="7" fill="var(--track-gly)"/>
+                <text x="656" y="192" font-size="10.5" fill="#1B2330" text-anchor="middle">Eye exam</text>
+              </g>
+              <!-- A1c · Apr 2026 -->
+              <g class="station">
+                <circle cx="1024" cy="150" r="7" fill="var(--track-gly)"/>
+                <text x="1024" y="174" font-size="10.5" fill="#1B2330" text-anchor="middle">A1c</text>
+              </g>
+
+              <!-- ═════ Cardiovascular (y=220) ═════ -->
+              <!-- Semaglutide · Mar 2024 (transfer) -->
+              <a href="station-detail.html" class="station-link">
+                <g class="station">
+                  <circle cx="624" cy="220" r="9" fill="#FFFFFF" stroke="var(--track-cv)" stroke-width="2.5"/>
+                  <circle cx="624" cy="220" r="4" fill="var(--track-cv)"/>
+                  <text x="624" y="244" font-size="10.5" fill="#1B2330" text-anchor="middle">Semaglutide</text>
+                </g>
+              </a>
+              <!-- Small-vessel finding · Aug 2024 (transfer with MCI dx) -->
+              <g class="station">
+                <circle cx="704" cy="220" r="9" fill="#FFFFFF" stroke="var(--track-cv)" stroke-width="2.5"/>
+                <circle cx="704" cy="220" r="4" fill="var(--track-cv)"/>
+                <text x="704" y="244" font-size="10.5" fill="#1B2330" text-anchor="middle">Small-vessel</text>
+              </g>
+
+              <!-- ═════ Kidney (y=290) ═════ -->
+              <!-- Semaglutide · Mar 2024 (transfer) -->
+              <a href="station-detail.html" class="station-link">
+                <g class="station">
+                  <circle cx="624" cy="290" r="9" fill="#FFFFFF" stroke="var(--track-kid)" stroke-width="2.5"/>
+                  <circle cx="624" cy="290" r="4" fill="var(--track-kid)"/>
+                  <text x="624" y="314" font-size="10.5" fill="#1B2330" text-anchor="middle">Semaglutide</text>
+                </g>
+              </a>
+              <!-- Labs · Apr 2026 -->
+              <g class="station">
+                <circle cx="1024" cy="290" r="7" fill="var(--track-kid)"/>
+                <text x="1024" y="314" font-size="10.5" fill="#1B2330" text-anchor="middle">Labs</text>
+              </g>
+
+              <!-- ═════ Preventive (y=360) ═════ -->
+              <!-- Cataract · Jul 2021 -->
+              <g class="station">
+                <circle cx="113" cy="360" r="7" fill="var(--track-prev)"/>
+                <text x="113" y="384" font-size="10.5" fill="#1B2330" text-anchor="middle">Cataract</text>
+              </g>
+              <!-- RSV vaccine · Sep 2024 -->
+              <g class="station">
+                <circle cx="720" cy="360" r="7" fill="var(--track-prev)"/>
+                <text x="720" y="384" font-size="10.5" fill="#1B2330" text-anchor="middle">RSV vaccine</text>
+              </g>
+              <!-- Shingrix · Nov 2025 (L2 to avoid Falls eval) -->
+              <g class="station">
+                <circle cx="960" cy="360" r="7" fill="var(--track-prev)"/>
+                <text x="960" y="402" font-size="10.5" fill="#1B2330" text-anchor="middle">Shingrix</text>
+              </g>
+              <!-- Falls eval · Feb 2026 -->
+              <g class="station">
+                <circle cx="1000" cy="360" r="7" fill="var(--track-prev)"/>
+                <text x="1000" y="384" font-size="10.5" fill="#1B2330" text-anchor="middle">Falls eval</text>
+              </g>
+
+              <!-- ═════ Forward stations (right of Today at x=1040) ═════ -->
+              <!-- Eye exam · Overdue (Glycemic) -->
+              <g class="fwd-station">
+                <circle cx="1088" cy="150" r="7" fill="#FFFFFF" stroke="var(--track-gly)" stroke-width="2" stroke-dasharray="3 2"/>
+                <text x="1088" y="174" font-size="10.5" fill="#1B2330" text-anchor="middle">Eye exam</text>
+                <rect x="1053" y="182" width="70" height="14" rx="4" fill="#D49A4E" fill-opacity="0.20"/>
+                <text x="1088" y="192" font-size="10" fill="#8A5E2D" text-anchor="middle">Overdue</text>
+              </g>
+              <!-- A1c recheck · Coming up (Glycemic) -->
+              <g class="fwd-station">
+                <circle cx="1184" cy="150" r="7" fill="#FFFFFF" stroke="var(--track-gly)" stroke-width="2" stroke-dasharray="3 2"/>
+                <text x="1184" y="174" font-size="10.5" fill="#1B2330" text-anchor="middle">A1c recheck</text>
+                <rect x="1149" y="182" width="70" height="14" rx="4" fill="#B3D9DF" fill-opacity="0.40"/>
+                <text x="1184" y="192" font-size="10" fill="#0E5C6F" text-anchor="middle">Coming up</text>
+              </g>
+              <!-- Memory care plan · Suggested (Cognitive) -->
+              <g class="fwd-station">
+                <circle cx="1112" cy="80" r="7" fill="#FFFFFF" stroke="var(--track-cog)" stroke-width="2" stroke-dasharray="3 2"/>
+                <text x="1112" y="104" font-size="10.5" fill="#1B2330" text-anchor="middle">Memory care plan</text>
+                <rect x="1077" y="112" width="70" height="14" rx="4" fill="#E5EAEE"/>
+                <text x="1112" y="122" font-size="10" fill="#6B7785" text-anchor="middle">Suggested</text>
+              </g>
+              <!-- Driving safety · Suggested (Cognitive, L2) -->
+              <g class="fwd-station">
+                <circle cx="1208" cy="80" r="7" fill="#FFFFFF" stroke="var(--track-cog)" stroke-width="2" stroke-dasharray="3 2"/>
+                <text x="1208" y="138" font-size="10.5" fill="#1B2330" text-anchor="middle">Driving safety</text>
+                <rect x="1173" y="146" width="70" height="14" rx="4" fill="#E5EAEE"/>
+                <text x="1208" y="156" font-size="10" fill="#6B7785" text-anchor="middle">Suggested</text>
+              </g>
+              <!-- DEXA · Suggested (Preventive) -->
+              <g class="fwd-station">
+                <circle cx="1144" cy="360" r="7" fill="#FFFFFF" stroke="var(--track-prev)" stroke-width="2" stroke-dasharray="3 2"/>
+                <text x="1144" y="384" font-size="10.5" fill="#1B2330" text-anchor="middle">DEXA</text>
+                <rect x="1109" y="392" width="70" height="14" rx="4" fill="#E5EAEE"/>
+                <text x="1144" y="402" font-size="10" fill="#6B7785" text-anchor="middle">Suggested</text>
+              </g>
+
+              <!-- ═════ Year axis (May year markers) ═════ -->
+              <line x1="80" y1="425" x2="1232" y2="425" stroke="var(--border)" stroke-width="1"/>
+              <text x="80"   y="445" font-size="11" fill="var(--text-2)" text-anchor="middle">May 2021</text>
+              <text x="272"  y="445" font-size="11" fill="var(--text-2)" text-anchor="middle">2022</text>
+              <text x="464"  y="445" font-size="11" fill="var(--text-2)" text-anchor="middle">2023</text>
+              <text x="656"  y="445" font-size="11" fill="var(--text-2)" text-anchor="middle">2024</text>
+              <text x="848"  y="445" font-size="11" fill="var(--text-2)" text-anchor="middle">2025</text>
+              <text x="1040" y="445" font-size="11" fill="var(--text-2)" text-anchor="middle">2026</text>
+              <text x="1232" y="445" font-size="11" fill="var(--text-2)" text-anchor="middle">May 2027</text>
+
+            </svg>
+          </div>
+        </article>
+
+        <p class="hint">Tap any station to open its details, including the source records that produced it.</p>
+
+        <article class="card companion-cta">
+          <div class="companion-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0E5C6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/>
+            </svg>
+          </div>
+          <div class="companion-text">
+            <strong>Have a question about your map?</strong>
+            <span>The Companion explains any station, score, or trend in plain language and shows you the source.</span>
+          </div>
+          <button class="btn-primary" type="button">Ask the Companion</button>
+        </article>
+
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
