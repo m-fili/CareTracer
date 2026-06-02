@@ -129,13 +129,22 @@
     width: 3px; background: var(--teal); border-radius: 0 2px 2px 0;
   }
   .sidebar-user {
-    margin-top: auto;
     padding: 16px;
     display: flex;
     align-items: center;
     gap: 10px;
     border-top: 1px solid var(--border);
   }
+  .nav-logout {
+    margin: auto 12px 0;
+    display: flex; align-items: center; gap: 12px;
+    height: 40px; padding: 0 12px;
+    background: none; border: none; cursor: pointer;
+    font: inherit; font-size: 15px; color: var(--text);
+    border-radius: 6px; text-align: left;
+  }
+  .nav-logout:hover { background: rgba(179, 217, 223, 0.25); }
+  .nav-logout svg { width: 16px; height: 16px; color: var(--text-2); flex: none; }
   .user-avatar {
     width: 32px; height: 32px;
     border-radius: 50%;
@@ -665,6 +674,11 @@
           Settings
         </a>
       </nav>
+
+      <button type="button" class="nav-logout" onclick="if(window.CareTracerAuth){window.CareTracerAuth.logout();} location.replace('index.html');">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>
+        Log out
+      </button>
 
       <div class="sidebar-user">
         <div class="user-avatar" aria-hidden="true">MR</div>
