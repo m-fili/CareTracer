@@ -1,11 +1,30 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script src="auth.js"></script>
-<script>window.CareTracerAuth && window.CareTracerAuth.require("patient");</script>
 <meta charset="utf-8" />
 <title>CareTracer - Home</title>
 <meta name="viewport" content="width=1440" />
+<template id="__bundler_thumbnail" data-bg-color="#FBFAF7">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#FBFAF7"/>
+    <line x1="200" y1="300" x2="1000" y2="300" stroke="#4F90B8" stroke-width="20" stroke-linecap="round"/>
+    <line x1="200" y1="380" x2="1000" y2="380" stroke="#E8985F" stroke-width="20" stroke-linecap="round"/>
+    <line x1="200" y1="460" x2="1000" y2="460" stroke="#D55D5D" stroke-width="20" stroke-linecap="round"/>
+    <line x1="200" y1="540" x2="1000" y2="540" stroke="#8B7BB8" stroke-width="20" stroke-linecap="round"/>
+    <circle cx="320" cy="300" r="14" fill="#4F90B8"/>
+    <circle cx="520" cy="300" r="14" fill="#4F90B8"/>
+    <circle cx="380" cy="380" r="14" fill="#E8985F"/>
+    <circle cx="700" cy="380" r="14" fill="#E8985F"/>
+    <circle cx="600" cy="460" r="14" fill="#D55D5D"/>
+    <circle cx="860" cy="460" r="14" fill="#D55D5D"/>
+    <circle cx="440" cy="540" r="14" fill="#8B7BB8"/>
+    <circle cx="780" cy="540" r="14" fill="#8B7BB8"/>
+    <line x1="780" y1="380" x2="780" y2="460" stroke="#1B2330" stroke-width="3" opacity="0.2"/>
+    <circle cx="780" cy="380" r="22" fill="#FBFAF7" stroke="#E8985F" stroke-width="8"/>
+    <circle cx="780" cy="460" r="22" fill="#FBFAF7" stroke="#D55D5D" stroke-width="8"/>
+    <text x="600" y="680" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="44" font-weight="600" fill="#0E5C6F">CareTracer</text>
+  </svg>
+</template>
 <style>
   :root {
     --teal: #0E5C6F;
@@ -113,16 +132,6 @@
     position: absolute; left: -12px; top: 8px; bottom: 8px;
     width: 3px; background: var(--teal); border-radius: 0 2px 2px 0;
   }
-  .nav-logout {
-    margin: auto 12px 16px;
-    display: flex; align-items: center; gap: 12px;
-    height: 44px; padding: 0 12px;
-    background: none; border: none; cursor: pointer;
-    font: inherit; font-size: 16px; color: var(--text);
-    border-radius: 6px; text-align: left;
-  }
-  .nav-logout:hover { background: rgba(179, 217, 223, 0.25); }
-  .nav-logout svg { width: 16px; height: 16px; color: var(--text-2); flex: none; }
 
   /* ───────── Top bar ───────── */
   .main { display: flex; flex-direction: column; min-width: 0; }
@@ -223,7 +232,6 @@
   }
   .pill-overdue { background: rgba(212, 154, 78, 0.20); color: #8A5E2D; }
   .pill-suggested { background: var(--border); color: var(--text-2); }
-  .pill-coming-up { background: rgba(179, 217, 223, 0.40); color: var(--teal); }
   .compass-desc { font-size: 14px; color: var(--text); line-height: 1.5; }
   .compass-src { font-size: 12px; color: var(--text-2); }
 
@@ -383,39 +391,35 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"></path><path d="M5 9v12h14V9"></path></svg>
           Home
         </a>
-        <a href="health-map.html">
+        <a href="#health-map">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path d="M6 8v4a4 4 0 0 0 4 4h4"></path></svg>
           My Health Map
         </a>
-        <a href="health-scores.html">
+        <a href="#scores">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-9"></path></svg>
           Health Scores
         </a>
-        <a href="companion.html">
+        <a href="#companion">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"></path></svg>
           Companion
         </a>
-        <a href="care-compass.html">
+        <a href="#compass">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M15 9l-2 5-5 2 2-5 5-2z"></path></svg>
           Care Compass
         </a>
-        <a href="care-partners.html">
+        <a href="#partners">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="10" r="2"></circle><path d="M3 20c0-3 3-5 6-5s6 2 6 5"></path><path d="M15 20c0-2 2-3.5 4-3.5s2 1 2 2"></path></svg>
           Care Partners
         </a>
-        <a href="share-with-doctor.html">
+        <a href="#share">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v14"></path></svg>
           Share with Doctor
         </a>
-        <a href="settings.html">
+        <a href="#settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
           Settings
         </a>
       </nav>
-      <button type="button" class="nav-logout" onclick="if(window.CareTracerAuth){window.CareTracerAuth.logout();} location.replace('index.html');">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg>
-        Log out
-      </button>
     </aside>
 
     <!-- ───────── Main ───────── -->
@@ -464,11 +468,11 @@
               </div>
               <div class="compass-item">
                 <div class="compass-row1">
-                  <span class="name">HbA1c recheck</span>
-                  <span class="pill pill-coming-up">Coming up</span>
+                  <span class="name">Bone density screening (DEXA)</span>
+                  <span class="pill pill-suggested">Suggested</span>
                 </div>
-                <div class="compass-desc">Your last HbA1c was in April 2026 and was at target. Most guidelines suggest rechecking every 3 to 6 months — you're approaching the next checkpoint.</div>
-                <div class="compass-src">Source: ADA Standards of Care in Diabetes — 2026, Section 6 (Glycemic Targets)</div>
+                <div class="compass-desc">Not yet performed. Worth considering at your age, particularly given recent attention to falls.</div>
+                <div class="compass-src">Source: Bone Health &amp; Osteoporosis Foundation (DEXA recommended for men aged 70+)</div>
               </div>
               <div class="compass-item">
                 <div class="compass-row1">
@@ -557,7 +561,7 @@
               </svg>
             </div>
             <div class="map-footer">
-              <a class="btn-primary" href="health-map.html" role="button" style="text-decoration: none; display: inline-block;">Open Health Map</a>
+              <button class="btn-primary" type="button">Open Health Map</button>
             </div>
           </article>
         </section>

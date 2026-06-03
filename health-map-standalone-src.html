@@ -1,11 +1,37 @@
 <!doctype html>
 <html lang="en">
 <head>
-<script src="auth.js"></script>
-<script>window.CareTracerAuth && window.CareTracerAuth.require("patient");</script>
 <meta charset="utf-8" />
 <title>CareTracer - Your Health Map</title>
 <meta name="viewport" content="width=1440" />
+<template id="__bundler_thumbnail" data-bg-color="#FBFAF7">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#FBFAF7"/>
+    <line x1="120" y1="200" x2="1080" y2="200" stroke="#4F90B8" stroke-width="20" stroke-linecap="round"/>
+    <line x1="120" y1="310" x2="1080" y2="310" stroke="#E8985F" stroke-width="20" stroke-linecap="round"/>
+    <line x1="120" y1="420" x2="1080" y2="420" stroke="#D55D5D" stroke-width="20" stroke-linecap="round"/>
+    <line x1="120" y1="530" x2="1080" y2="530" stroke="#8B7BB8" stroke-width="20" stroke-linecap="round"/>
+    <line x1="120" y1="640" x2="1080" y2="640" stroke="#7C9BAA" stroke-width="20" stroke-linecap="round"/>
+    <circle cx="220" cy="310" r="13" fill="#E8985F"/>
+    <circle cx="320" cy="420" r="13" fill="#D55D5D"/>
+    <circle cx="320" cy="530" r="13" fill="#8B7BB8"/>
+    <circle cx="460" cy="420" r="13" fill="#D55D5D"/>
+    <circle cx="600" cy="640" r="13" fill="#7C9BAA"/>
+    <circle cx="640" cy="530" r="13" fill="#8B7BB8"/>
+    <circle cx="780" cy="310" r="13" fill="#E8985F"/>
+    <line x1="900" y1="310" x2="900" y2="530" stroke="#1B2330" stroke-width="3" opacity="0.25"/>
+    <circle cx="900" cy="310" r="20" fill="#FBFAF7" stroke="#E8985F" stroke-width="7"/>
+    <circle cx="900" cy="310" r="8" fill="#E8985F"/>
+    <circle cx="900" cy="420" r="20" fill="#FBFAF7" stroke="#D55D5D" stroke-width="7"/>
+    <circle cx="900" cy="420" r="8" fill="#D55D5D"/>
+    <circle cx="900" cy="530" r="20" fill="#FBFAF7" stroke="#8B7BB8" stroke-width="7"/>
+    <circle cx="900" cy="530" r="8" fill="#8B7BB8"/>
+    <circle cx="980" cy="200" r="13" fill="#4F90B8"/>
+    <circle cx="950" cy="640" r="13" fill="#7C9BAA"/>
+    <line x1="1010" y1="140" x2="1010" y2="680" stroke="#1B2330" stroke-width="3" stroke-dasharray="8 6" opacity="0.4"/>
+    <text x="600" y="750" text-anchor="middle" font-family="Inter, -apple-system, sans-serif" font-size="44" font-weight="600" fill="#0E5C6F">Your Health Map</text>
+  </svg>
+</template>
 <style>
   :root {
     --teal: #0E5C6F;
@@ -187,7 +213,7 @@
     padding: 4px;
     gap: 2px;
   }
-  .seg button, .seg a {
+  .seg button {
     background: transparent; border: none;
     font-family: inherit; font-size: 13px; color: var(--text);
     height: 32px; padding: 0 14px;
@@ -195,17 +221,12 @@
     cursor: pointer;
     font-weight: 400;
     line-height: 1;
-    display: inline-flex; align-items: center;
-    text-decoration: none;
   }
-  .seg a:hover { text-decoration: none; background: rgba(179,217,223,0.20); }
-  .seg button.is-selected, .seg a.is-selected {
+  .seg button.is-selected {
     background: var(--surface);
     font-weight: 500;
     box-shadow: 0 1px 2px rgba(27,35,48,0.08);
-    color: var(--text);
   }
-  .seg a.is-selected:hover { background: var(--surface); }
 
   /* ───────── Map card ───────── */
   .card {
@@ -285,27 +306,27 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><path d="M6 8v4a4 4 0 0 0 4 4h4"></path></svg>
           My Health Map
         </a>
-        <a href="health-scores.html">
+        <a href="#scores">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-9"></path></svg>
           Health Scores
         </a>
-        <a href="companion.html">
+        <a href="#companion">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"></path></svg>
           Companion
         </a>
-        <a href="care-compass.html">
+        <a href="#compass">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M15 9l-2 5-5 2 2-5 5-2z"></path></svg>
           Care Compass
         </a>
-        <a href="care-partners.html">
+        <a href="#partners">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="10" r="2"></circle><path d="M3 20c0-3 3-5 6-5s6 2 6 5"></path><path d="M15 20c0-2 2-3.5 4-3.5s2 1 2 2"></path></svg>
           Care Partners
         </a>
-        <a href="share-with-doctor.html">
+        <a href="#share">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v14"></path></svg>
           Share with Doctor
         </a>
-        <a href="settings.html">
+        <a href="#settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
           Settings
         </a>
@@ -357,8 +378,8 @@
           <div class="control-group">
             <span class="control-label">Range:</span>
             <div class="seg" role="group" aria-label="Time range">
-              <a href="health-map.html" class="is-selected" aria-current="page">All time</a>
-              <a href="health-map-5y.html">Last 5 years</a>
+              <button type="button" class="is-selected">All time</button>
+              <button type="button">Last 5 years</button>
               <button type="button">Last year</button>
             </div>
           </div>
@@ -442,13 +463,11 @@
                 <text x="808" y="174" font-size="10.5" fill="#1B2330" text-anchor="middle">ED visit</text>
               </g>
               <!-- S6: 2024.17 Glycemic transfer trio — Semaglutide (L1, y=174) -->
-              <a href="station-detail.html" class="station-link">
-                <g class="station">
-                  <circle cx="925" cy="150" r="9" fill="#FFFFFF" stroke="var(--track-gly)" stroke-width="2.5"/>
-                  <circle cx="925" cy="150" r="4" fill="var(--track-gly)"/>
-                  <text x="925" y="174" font-size="10.5" fill="#1B2330" text-anchor="middle">Semaglutide</text>
-                </g>
-              </a>
+              <g class="station">
+                <circle cx="925" cy="150" r="9" fill="#FFFFFF" stroke="var(--track-gly)" stroke-width="2.5"/>
+                <circle cx="925" cy="150" r="4" fill="var(--track-gly)"/>
+                <text x="925" y="174" font-size="10.5" fill="#1B2330" text-anchor="middle">Semaglutide</text>
+              </g>
               <!-- S5e: 2024.27 Glycemic — Eye exam (L2, y=192) -->
               <g class="station">
                 <circle cx="935" cy="150" r="7" fill="var(--track-gly)"/>
@@ -474,13 +493,11 @@
                 <text x="248" y="244" font-size="10.5" fill="#1B2330" text-anchor="middle">Atorvastatin</text>
               </g>
               <!-- S6c: 2024.17 CV transfer — Semaglutide (L1, y=244) -->
-              <a href="station-detail.html" class="station-link">
-                <g class="station">
-                  <circle cx="925" cy="220" r="9" fill="#FFFFFF" stroke="var(--track-cv)" stroke-width="2.5"/>
-                  <circle cx="925" cy="220" r="4" fill="var(--track-cv)"/>
-                  <text x="925" y="244" font-size="10.5" fill="#1B2330" text-anchor="middle">Semaglutide</text>
-                </g>
-              </a>
+              <g class="station">
+                <circle cx="925" cy="220" r="9" fill="#FFFFFF" stroke="var(--track-cv)" stroke-width="2.5"/>
+                <circle cx="925" cy="220" r="4" fill="var(--track-cv)"/>
+                <text x="925" y="244" font-size="10.5" fill="#1B2330" text-anchor="middle">Semaglutide</text>
+              </g>
               <!-- S7v: 2024.63 CV transfer — Small-vessel (L2, y=262) -->
               <g class="station">
                 <circle cx="951" cy="220" r="9" fill="#FFFFFF" stroke="var(--track-cv)" stroke-width="2.5"/>
@@ -502,13 +519,11 @@
                 <text x="584" y="314" font-size="10.5" fill="#1B2330" text-anchor="middle">CKD Stage 2</text>
               </g>
               <!-- S6k: 2024.17 Kidney transfer — Semaglutide (L1, y=314) -->
-              <a href="station-detail.html" class="station-link">
-                <g class="station">
-                  <circle cx="925" cy="290" r="9" fill="#FFFFFF" stroke="var(--track-kid)" stroke-width="2.5"/>
-                  <circle cx="925" cy="290" r="4" fill="var(--track-kid)"/>
-                  <text x="925" y="314" font-size="10.5" fill="#1B2330" text-anchor="middle">Semaglutide</text>
-                </g>
-              </a>
+              <g class="station">
+                <circle cx="925" cy="290" r="9" fill="#FFFFFF" stroke="var(--track-kid)" stroke-width="2.5"/>
+                <circle cx="925" cy="290" r="4" fill="var(--track-kid)"/>
+                <text x="925" y="314" font-size="10.5" fill="#1B2330" text-anchor="middle">Semaglutide</text>
+              </g>
               <!-- S11k: 2026.31 Kidney — Labs (L1, y=314) -->
               <g class="station">
                 <circle cx="1028" cy="290" r="7" fill="var(--track-kid)"/>

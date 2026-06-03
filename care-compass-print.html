@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>CareTracer - Care Compass (Print)</title>
+<style>
+  :root {
+    --teal: #0E5C6F;
+    --teal-soft: #B3D9DF;
+    --warm-white: #FBFAF7;
+    --surface: #FFFFFF;
+    --surface-alt: #F4F6F8;
+    --border: #E5EAEE;
+    --text: #1B2330;
+    --text-2: #6B7785;
+
+    --pill-overdue-bg: rgba(212, 154, 78, 0.20);
+    --pill-overdue-fg: #8A5E2D;
+    --pill-coming-bg: rgba(179, 217, 223, 0.40);
+    --pill-coming-fg: #0E5C6F;
+    --pill-suggested-bg: #E5EAEE;
+    --pill-suggested-fg: #6B7785;
+  }
+
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body {
+    margin: 0;
+    background: var(--warm-white);
+    color: var(--text);
+    font: 400 11pt/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "tnum";
+  }
+
+  .page {
+    max-width: 7.5in;
+    margin: 0 auto;
+    padding: 0.5in 0;
+  }
+
+  /* ───────── Print header ───────── */
+  .print-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--teal);
+  }
+  .wordmark {
+    color: var(--teal);
+    font-weight: 600;
+    font-size: 16pt;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .wordmark .mark { width: 20px; height: 20px; flex: none; }
+  .print-meta {
+    text-align: right;
+    font-size: 9pt;
+    color: var(--text-2);
+    line-height: 1.4;
+  }
+  .print-meta strong { color: var(--text); font-weight: 600; display: block; font-size: 10pt; }
+
+  /* ───────── Page header ───────── */
+  .page-header { margin-bottom: 20px; }
+  .page-header h2 {
+    margin: 0 0 6px;
+    font-size: 20pt; font-weight: 600; color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .page-header p.subhead {
+    margin: 0;
+    font-size: 11pt;
+    color: var(--text-2);
+  }
+  .page-header p.sample {
+    margin: 6px 0 0;
+    font-size: 8.5pt;
+    color: var(--text-2);
+    font-style: italic;
+  }
+
+  /* ───────── Item card ───────── */
+  .item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .item-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .item-title-stack { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .item-title {
+    margin: 0;
+    font-size: 13pt;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.005em;
+  }
+  .item-timing {
+    font-size: 9pt;
+    color: var(--text-2);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 11px;
+    font-size: 8.5pt;
+    font-weight: 500;
+    border-radius: 13px;
+    line-height: 1.1;
+    white-space: nowrap;
+    flex: none;
+  }
+  .pill-overdue   { background: var(--pill-overdue-bg);   color: var(--pill-overdue-fg); }
+  .pill-coming    { background: var(--pill-coming-bg);    color: var(--pill-coming-fg); }
+  .pill-suggested { background: var(--pill-suggested-bg); color: var(--pill-suggested-fg); }
+
+  .item-desc {
+    margin: 10px 0 0;
+    font-size: 10.5pt;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .item-bottom {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .sources {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .source-line {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .source-label {
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    flex: none;
+    min-width: 90px;
+  }
+  .source-value {
+    font-size: 9.5pt;
+    color: var(--text);
+    font-weight: 400;
+  }
+  .notes-line {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 9pt;
+    color: var(--text-2);
+  }
+  .notes-box {
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--teal);
+    border-radius: 3px;
+    flex: none;
+  }
+
+  /* ───────── Footer note ───────── */
+  .footer-note {
+    margin-top: 20px;
+    padding: 14px 18px;
+    background: rgba(179, 217, 223, 0.20);
+    border-left: 3px solid var(--teal);
+    border-radius: 4px;
+    font-size: 9.5pt;
+    color: var(--text);
+    line-height: 1.5;
+    break-inside: avoid;
+  }
+  .footer-note strong { color: var(--teal); }
+
+  @page {
+    size: letter portrait;
+    margin: 0.5in;
+  }
+
+  @media print {
+    html, body { background: #fff; }
+    .page { padding: 0; max-width: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+
+    <header class="print-header">
+      <div class="wordmark">
+        <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 3v18M3 12h18"></path>
+        </svg>
+        CareTracer
+      </div>
+      <div class="print-meta">
+        <strong>Care Compass — John Doe</strong>
+        Last updated May 12, 2026 · Printed May 20, 2026
+      </div>
+    </header>
+
+    <section class="page-header">
+      <h2>Care Compass</h2>
+      <p class="subhead">Five forward-looking items drawn from authoritative care guidelines and from your own record. None of these are diagnoses or recommendations — they are conversation starters for your next visit with your care team.</p>
+      <p class="sample">This is a sample patient record for demonstration only. All data is synthetic.</p>
+    </section>
+
+    <article class="item">
+      <header class="item-top">
+        <div class="item-title-stack">
+          <h3 class="item-title">Diabetic eye exam</h3>
+          <span class="item-timing">Last completed April 2024 · about 24 months ago</span>
+        </div>
+        <span class="pill pill-overdue">Overdue</span>
+      </header>
+      <p class="item-desc">An annual dilated eye exam is recommended for people with Type 2 diabetes to screen for diabetic retinopathy and other eye changes. Your last exam, in April 2024, was normal with no signs of retinopathy.</p>
+      <div class="item-bottom">
+        <div class="sources">
+          <div class="source-line">
+            <span class="source-label">Guideline</span>
+            <span class="source-value">ADA Standards of Care in Diabetes — 2026, Section 12 (Retinopathy, Neuropathy, and Foot Care)</span>
+          </div>
+          <div class="source-line">
+            <span class="source-label">From your chart</span>
+            <span class="source-value">Last exam: April 12, 2024 (Ophthalmology, MGB)</span>
+          </div>
+        </div>
+        <div class="notes-line"><span class="notes-box"></span>Add to my next-visit notes</div>
+      </div>
+    </article>
+
+    <article class="item">
+      <header class="item-top">
+        <div class="item-title-stack">
+          <h3 class="item-title">HbA1c recheck</h3>
+          <span class="item-timing">Due in 3–4 months · last drawn April 21, 2026</span>
+        </div>
+        <span class="pill pill-coming">Coming up</span>
+      </header>
+      <p class="item-desc">Most guidelines suggest rechecking HbA1c every 3 to 6 months while blood sugar is being actively managed. Your most recent result was at your target.</p>
+      <div class="item-bottom">
+        <div class="sources">
+          <div class="source-line">
+            <span class="source-label">Guideline</span>
+            <span class="source-value">ADA Standards of Care in Diabetes — 2026, Section 6 (Glycemic Targets)</span>
+          </div>
+          <div class="source-line">
+            <span class="source-label">From your chart</span>
+            <span class="source-value">Last HbA1c: 7.0% on April 21, 2026</span>
+          </div>
+        </div>
+        <div class="notes-line"><span class="notes-box"></span>Add to my next-visit notes</div>
+      </div>
+    </article>
+
+    <article class="item">
+      <header class="item-top">
+        <div class="item-title-stack">
+          <h3 class="item-title">Memory care planning discussion</h3>
+          <span class="item-timing">Noted for your next neurology visit</span>
+        </div>
+        <span class="pill pill-suggested">Suggested</span>
+      </header>
+      <p class="item-desc">An advance-care-planning conversation is often suggested at or shortly after a Mild Cognitive Impairment diagnosis, while you are well-positioned to participate fully. Your neurology team noted that this would be appropriate at your next visit.</p>
+      <div class="item-bottom">
+        <div class="sources">
+          <div class="source-line">
+            <span class="source-label">Guideline</span>
+            <span class="source-value">AAN Practice Guideline Update on Mild Cognitive Impairment (Petersen et al., 2018)</span>
+          </div>
+          <div class="source-line">
+            <span class="source-label">From your chart</span>
+            <span class="source-value">Surfaced from your neurology note · March 10, 2026</span>
+          </div>
+        </div>
+        <div class="notes-line"><span class="notes-box"></span>Add to my next-visit notes</div>
+      </div>
+    </article>
+
+    <article class="item">
+      <header class="item-top">
+        <div class="item-title-stack">
+          <h3 class="item-title">Driving safety reassessment</h3>
+          <span class="item-timing">Discussed verbally in March 2026</span>
+        </div>
+        <span class="pill pill-suggested">Suggested</span>
+      </header>
+      <p class="item-desc">Periodic reassessment of driving safety is often suggested for people with Mild Cognitive Impairment. You and your neurology team discussed this verbally in March 2026, including a plan to limit driving to short, familiar routes. Documenting the reassessment formally is a useful next step.</p>
+      <div class="item-bottom">
+        <div class="sources">
+          <div class="source-line">
+            <span class="source-label">Guideline</span>
+            <span class="source-value">AAN guidance on driving and dementia</span>
+          </div>
+          <div class="source-line">
+            <span class="source-label">From your chart</span>
+            <span class="source-value">Discussed in your neurology note · March 10, 2026</span>
+          </div>
+        </div>
+        <div class="notes-line"><span class="notes-box"></span>Add to my next-visit notes</div>
+      </div>
+    </article>
+
+    <article class="item">
+      <header class="item-top">
+        <div class="item-title-stack">
+          <h3 class="item-title">Bone density screening (DEXA)</h3>
+          <span class="item-timing">Not yet performed</span>
+        </div>
+        <span class="pill pill-suggested">Suggested</span>
+      </header>
+      <p class="item-desc">A bone density scan (DEXA) screens for osteoporosis. The Bone Health and Osteoporosis Foundation recommends a baseline DEXA for all men aged 70 and older. You have not yet had one in your record.</p>
+      <div class="item-bottom">
+        <div class="sources">
+          <div class="source-line">
+            <span class="source-label">Guideline</span>
+            <span class="source-value">Bone Health &amp; Osteoporosis Foundation — DEXA recommended for men aged 70 and older</span>
+          </div>
+          <div class="source-line">
+            <span class="source-label">From your chart</span>
+            <span class="source-value">No prior DEXA in your record</span>
+          </div>
+        </div>
+        <div class="notes-line"><span class="notes-box"></span>Add to my next-visit notes</div>
+      </div>
+    </article>
+
+    <aside class="footer-note">
+      <strong>A note on this summary.</strong> The items above are conversation starters drawn from published care guidelines and your own record — they are not diagnoses or medical recommendations. Bring this page to your next visit and use the checkboxes to mark items you'd like to discuss with your care team.
+    </aside>
+
+  </div>
+<script>
+  (async () => {
+    if (document.fonts && document.fonts.ready) {
+      try { await document.fonts.ready; } catch (e) {}
+    }
+    await new Promise(r => setTimeout(r, 500));
+    window.print();
+  })();
+</script>
+</body>
+</html>
