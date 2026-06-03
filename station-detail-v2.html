@@ -202,17 +202,31 @@
     box-shadow: 0 1px 2px rgba(27,35,48,0.08);
   }
 
-  /* ───────── Map / drawer split ───────── */
-  .split {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 420px;
-    gap: 20px;
-    align-items: stretch;
-  }
-  .map-column {
+  /* ───────── Single-column stack layout (Option A) ───────── */
+  .layout {
     display: flex; flex-direction: column;
     gap: var(--row-gap);
+  }
+
+  /* ───────── Detail card: 3-column dashboard ───────── */
+  .detail-card {
+    padding: 28px 32px;
+    position: relative;
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(0, 1.15fr);
+    gap: 32px;
+    align-items: start;
+  }
+  .detail-col {
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .detail-col + .detail-col {
+    padding-left: 32px;
+    border-left: 1px solid var(--border);
   }
 
   /* ───────── Map card ───────── */
@@ -223,10 +237,10 @@
     box-shadow: var(--card-shadow);
     padding: var(--card-pad);
   }
-  .map-card { padding: 24px; }
+  .map-card { padding: 20px 24px; }
   .map-svg-wrap {
     width: 100%;
-    aspect-ratio: 1240 / 480;
+    aspect-ratio: 1240 / 360;
   }
   .map-svg { width: 100%; height: 100%; display: block; overflow: visible; }
 
@@ -271,23 +285,17 @@
   }
   .btn-primary:hover { background: #0a4c5c; }
 
-  /* ───────── Detail drawer ───────── */
-  .drawer {
-    width: 420px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--card-radius);
-    box-shadow: -4px 0 12px rgba(27, 35, 48, 0.06);
-    padding: 24px;
-    align-self: stretch;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* 3.1 Header */
+  /* ───────── Detail header (inside col 1) ───────── */
   .drawer-header { display: flex; flex-direction: column; gap: 8px; }
   .drawer-header-row {
     display: flex; align-items: center; justify-content: space-between;
+  }
+  /* Close button floats to top-right of the whole detail card */
+  .detail-card .close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1;
   }
   .eyebrow-chip {
     display: inline-block;
@@ -323,7 +331,7 @@
 
   .hairline {
     height: 1px; background: var(--border);
-    margin: 20px 0;
+    margin: 18px 0;
     border: 0;
   }
 
@@ -348,7 +356,7 @@
   .track-chip .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 
   /* Section block */
-  .block { margin-top: 24px; }
+  .block { margin-top: 22px; }
   .block:first-child { margin-top: 0; }
 
   /* 3.3 Plain-language */
@@ -420,7 +428,7 @@
   }
 
   /* 3.6 Handoff */
-  .handoff-block { margin-top: 24px; }
+  .handoff-block { margin-top: 22px; }
   .handoff-btn {
     width: 100%;
     height: 44px;
@@ -544,11 +552,10 @@
           </div>
         </section>
 
-        <!-- Split: map column + drawer -->
-        <section class="split">
+        <!-- Stacked layout: map strip on top, 3-col detail card below -->
+        <section class="layout">
 
-          <div class="map-column">
-            <article class="card map-card">
+          <article class="card map-card">
               <div class="map-svg-wrap">
                 <svg class="map-svg" viewBox="0 0 1240 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Longitudinal health map: 17 years across 4 conditions plus preventive care, with transfer stations at shared events. The Semaglutide triple-transfer station is selected.">
 
@@ -740,122 +747,125 @@
               </div>
             </article>
 
-            <article class="card companion-cta">
-              <div class="companion-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0E5C6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/>
-                </svg>
-              </div>
-              <div class="companion-text">
-                <strong>Have a question about your map?</strong>
-                <span>The Companion explains any station, score, or trend in plain language and shows you the source.</span>
-              </div>
-              <button class="btn-primary" type="button">Ask the Companion</button>
-            </article>
-          </div>
+          <!-- ───────── Detail card (3-col dashboard) ───────── -->
+          <article class="card detail-card" role="region" aria-labelledby="event-title">
+            <a href="health-map.html" class="close-btn" aria-label="Close detail panel">×</a>
 
-          <!-- ───────── Drawer ───────── -->
-          <aside class="drawer" role="dialog" aria-labelledby="event-title">
+            <div class="detail-grid">
 
-            <!-- 3.1 Header -->
-            <div class="drawer-header">
-              <div class="drawer-header-row">
-                <span class="eyebrow-chip">Selected event</span>
-                <a href="health-map.html" class="close-btn" aria-label="Close detail panel">×</a>
-              </div>
-              <h3 class="event-title" id="event-title">Semaglutide started</h3>
-              <p class="event-meta">March 14, 2024 · Endocrinology, MGB</p>
-            </div>
+              <!-- Column 1 — Context: header + tracks + what this means -->
+              <div class="detail-col">
+                <div class="drawer-header">
+                  <span class="eyebrow-chip">Selected event</span>
+                  <h3 class="event-title" id="event-title">Semaglutide started</h3>
+                  <p class="event-meta">March 14, 2024 · Endocrinology, MGB</p>
+                </div>
 
-            <hr class="hairline" />
-
-            <!-- 3.2 Track chips -->
-            <div class="block">
-              <p class="eyebrow">Affects three condition tracks</p>
-              <div class="track-chips">
-                <span class="track-chip">
-                  <span class="dot" style="background: var(--track-gly);"></span>
-                  Glycemic
-                </span>
-                <span class="track-chip">
-                  <span class="dot" style="background: var(--track-cv);"></span>
-                  Cardiovascular
-                </span>
-                <span class="track-chip">
-                  <span class="dot" style="background: var(--track-kid);"></span>
-                  Kidney
-                </span>
-              </div>
-            </div>
-
-            <!-- 3.3 Plain-language interpretation -->
-            <div class="block">
-              <p class="eyebrow">What this means</p>
-              <p class="interpret">Your endocrinology team added semaglutide (Ozempic) as a second medication for Type 2 diabetes, alongside metformin. Semaglutide is a once-weekly injection from a class of medications that lowers blood sugar and that also has been shown in large trials to protect the heart and the kidneys. This is why this single decision appears on three tracks of your health map at once.</p>
-            </div>
-
-            <!-- 3.4 Why each track lights up -->
-            <div class="block">
-              <p class="eyebrow">Why each track lights up</p>
-              <div class="why-list">
-                <div class="why-row">
-                  <span class="why-dot" style="background: var(--track-gly);"></span>
-                  <div class="why-body">
-                    <span class="why-name">Glycemic</span>
-                    The medication's primary purpose is to lower your hemoglobin A1c (long-term blood sugar). Your A1c has trended down from 9.2% to 7.0% since this medication was added.
+                <div class="block">
+                  <p class="eyebrow">Affects three condition tracks</p>
+                  <div class="track-chips">
+                    <span class="track-chip">
+                      <span class="dot" style="background: var(--track-gly);"></span>
+                      Glycemic
+                    </span>
+                    <span class="track-chip">
+                      <span class="dot" style="background: var(--track-cv);"></span>
+                      Cardiovascular
+                    </span>
+                    <span class="track-chip">
+                      <span class="dot" style="background: var(--track-kid);"></span>
+                      Kidney
+                    </span>
                   </div>
                 </div>
-                <div class="why-row">
-                  <span class="why-dot" style="background: var(--track-cv);"></span>
-                  <div class="why-body">
-                    <span class="why-name">Cardiovascular</span>
-                    Large trials have shown that semaglutide reduces the risk of major cardiovascular events (heart attack, stroke, cardiovascular death) in people with Type 2 diabetes.
-                  </div>
+
+                <div class="block">
+                  <p class="eyebrow">What this means</p>
+                  <p class="interpret">Your endocrinology team added semaglutide (Ozempic) as a second medication for Type 2 diabetes, alongside metformin. Semaglutide is a once-weekly injection from a class of medications that lowers blood sugar and that also has been shown in large trials to protect the heart and the kidneys. This is why this single decision appears on three tracks of your health map at once.</p>
                 </div>
-                <div class="why-row">
-                  <span class="why-dot" style="background: var(--track-kid);"></span>
-                  <div class="why-body">
-                    <span class="why-name">Kidney</span>
-                    Semaglutide also slows the progression of kidney disease in people with Type 2 diabetes. Your kidney function has been stable since this medication was added, and your urine protein has improved from a mildly elevated range to the normal range.
+              </div>
+
+              <!-- Column 2 — Why each track lights up -->
+              <div class="detail-col">
+                <div class="block">
+                  <p class="eyebrow">Why each track lights up</p>
+                  <div class="why-list">
+                    <div class="why-row">
+                      <span class="why-dot" style="background: var(--track-gly);"></span>
+                      <div class="why-body">
+                        <span class="why-name">Glycemic</span>
+                        The medication's primary purpose is to lower your hemoglobin A1c (long-term blood sugar). Your A1c has trended down from 9.2% to 7.0% since this medication was added.
+                      </div>
+                    </div>
+                    <div class="why-row">
+                      <span class="why-dot" style="background: var(--track-cv);"></span>
+                      <div class="why-body">
+                        <span class="why-name">Cardiovascular</span>
+                        Large trials have shown that semaglutide reduces the risk of major cardiovascular events (heart attack, stroke, cardiovascular death) in people with Type 2 diabetes.
+                      </div>
+                    </div>
+                    <div class="why-row">
+                      <span class="why-dot" style="background: var(--track-kid);"></span>
+                      <div class="why-body">
+                        <span class="why-name">Kidney</span>
+                        Semaglutide also slows the progression of kidney disease in people with Type 2 diabetes. Your kidney function has been stable since this medication was added, and your urine protein has improved from a mildly elevated range to the normal range.
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- 3.5 Source records -->
-            <div class="block">
-              <p class="eyebrow">Source records (from your chart)</p>
-              <div class="source-list">
-                <article class="source-card">
-                  <div class="source-top">
-                    <span class="resource-tag">MedicationStatement</span>
-                    <span class="source-date">Started March 14, 2024</span>
+              <!-- Column 3 — Source records + handoff -->
+              <div class="detail-col">
+                <div class="block">
+                  <p class="eyebrow">Source records (from your chart)</p>
+                  <div class="source-list">
+                    <article class="source-card">
+                      <div class="source-top">
+                        <span class="resource-tag">MedicationStatement</span>
+                        <span class="source-date">Started March 14, 2024</span>
+                      </div>
+                      <p class="source-summary">Semaglutide (Ozempic) 1.0 mg subcutaneous, once weekly. Indication: Type 2 Diabetes Mellitus.</p>
+                      <a class="source-link" href="#">View source →</a>
+                    </article>
+                    <article class="source-card">
+                      <div class="source-top">
+                        <span class="resource-tag">DocumentReference</span>
+                        <span class="source-date">October 9, 2025</span>
+                      </div>
+                      <p class="source-summary">Endocrinology follow-up note: "A1c improved to 7.1% on metformin 1000 mg BID plus semaglutide 1 mg weekly. eGFR stable at 64 mL/min/1.73 m²; UACR 32 mg/g, improved."</p>
+                      <a class="source-link" href="#">View source →</a>
+                    </article>
                   </div>
-                  <p class="source-summary">Semaglutide (Ozempic) 1.0 mg subcutaneous, once weekly. Indication: Type 2 Diabetes Mellitus.</p>
-                  <a class="source-link" href="#">View source →</a>
-                </article>
-                <article class="source-card">
-                  <div class="source-top">
-                    <span class="resource-tag">DocumentReference</span>
-                    <span class="source-date">October 9, 2025</span>
-                  </div>
-                  <p class="source-summary">Endocrinology follow-up note: "A1c improved to 7.1% on metformin 1000 mg BID plus semaglutide 1 mg weekly. eGFR stable at 64 mL/min/1.73 m²; UACR 32 mg/g, improved."</p>
-                  <a class="source-link" href="#">View source →</a>
-                </article>
+                </div>
+
+                <div class="handoff-block">
+                  <button type="button" class="handoff-btn">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/>
+                    </svg>
+                    Ask the Companion about this event
+                  </button>
+                  <p class="handoff-note">Opens the Companion with this event as context. Your conversation stays grounded in your own records.</p>
+                </div>
               </div>
-            </div>
 
-            <!-- 3.6 Companion handoff -->
-            <div class="handoff-block">
-              <button type="button" class="handoff-btn">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/>
-                </svg>
-                Ask the Companion about this event
-              </button>
-              <p class="handoff-note">Opens the Companion with this event as context. Your conversation stays grounded in your own records.</p>
             </div>
-          </aside>
+          </article>
+
+          <!-- ───────── Companion CTA ───────── -->
+          <article class="card companion-cta">
+            <div class="companion-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#0E5C6F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/>
+              </svg>
+            </div>
+            <div class="companion-text">
+              <strong>Have a question about your map?</strong>
+              <span>The Companion explains any station, score, or trend in plain language and shows you the source.</span>
+            </div>
+            <button class="btn-primary" type="button">Ask the Companion</button>
+          </article>
 
         </section>
 
