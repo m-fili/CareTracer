@@ -94,7 +94,7 @@
       host.appendChild(row);
 
       refresh.addEventListener("click", function () {
-        window.CareTracerConnect.openPicker();
+        window.CareTracerConnect.refresh(p, conn.consented);
       });
       disc.addEventListener("click", function () {
         showConfirm(host, p.name || "this health system", v.resourceCount);
