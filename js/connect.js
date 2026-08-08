@@ -332,8 +332,14 @@
     });
   }
 
-  function stepImport(m, provider, chosen) {
-    m.head("Connecting to " + provider.name, "Requesting and importing your record.");
+  function stepImport(m, provider, chosen, mode) {
+    var refreshing = mode === "refresh";
+    m.head(
+      (refreshing ? "Refreshing " : "Connecting to ") + provider.name,
+      refreshing
+        ? "Checking for new records since your last sync."
+        : "Requesting and importing your record."
+    );
     m.bd.innerHTML = "";
     m.ft.innerHTML = "";
 
@@ -440,7 +446,7 @@
         lbl.textContent = "Complete";
         return pause(360);
       })
-      .then(function () { stepDone(m, provider, manifest, collected.length); })
+      .then(function () { stepDone(m, provider, manifest, collected.length, refreshing); })
       .catch(function (err) {
         lbl.textContent = "Connection failed";
         say("✗ " + err.message);
@@ -452,9 +458,13 @@
 
   /* --------------------------------------------------------- step 4: done */
 
-  function stepDone(m, provider, manifest, count) {
-    m.head("Connected to " + provider.name,
-           "Your record is on this device and ready to explore.");
+  function stepDone(m, provider, manifest, count, refreshing) {
+    m.head(
+      refreshing ? provider.name + " is up to date" : "Connected to " + provider.name,
+      refreshing
+        ? "Your record has been refreshed from the source system."
+        : "Your record is on this device and ready to explore."
+    );
     m.bd.innerHTML = "";
     m.ft.innerHTML = "";
 
@@ -493,6 +503,18 @@
   function open() { stepIntro(new Modal()); }
   function openPicker() { stepPicker(new Modal()); }
 
+  /* Re-import from an already-connected system. Skips the picker and the
+   * consent step, reusing the data classes the patient already authorised,
+   * because re-consenting on every sync would be nagging rather than control. */
+  function refresh(provider, consentedIds) {
+    var chosen = {};
+    (consentedIds || []).forEach(function (id) { chosen[id] = true; });
+    if (!Object.keys(chosen).length) {
+      DATA_CLASSES.forEach(function (c) { chosen[c.id] = true; });
+    }
+    stepImport(new Modal(), provider, chosen, "refresh");
+  }
+
   function disconnect() {
     return window.CareTracerStore.clear();
   }
@@ -507,6 +529,7 @@
   window.CareTracerConnect = {
     open: open,
     openPicker: openPicker,
+    refresh: refresh,
     autoOpen: autoOpen,
     disconnect: disconnect,
     providers: PROVIDERS
