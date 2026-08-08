@@ -8,7 +8,7 @@
   },
   "patient": {
     "id": "c69a04b7-10ce-5fad-3e10-a423a3bfd774",
-    "name": "Riley817 Hugh686 Heidenreich818",
+    "name": "John Doe",
     "birthDate": "1949-10-18",
     "gender": "male"
   },
@@ -22,13 +22,13 @@
       "type": "Patient",
       "url": "Patient.ndjson",
       "count": 1,
-      "bytes": 3422
+      "bytes": 3398
     },
     {
       "type": "Encounter",
       "url": "Encounter.ndjson",
       "count": 304,
-      "bytes": 479410
+      "bytes": 472722
     },
     {
       "type": "Condition",
@@ -76,7 +76,7 @@
       "type": "CareTeam",
       "url": "CareTeam.ndjson",
       "count": 18,
-      "bytes": 27854
+      "bytes": 27458
     },
     {
       "type": "Device",
@@ -94,7 +94,7 @@
       "type": "DocumentReference",
       "url": "DocumentReference.ndjson",
       "count": 304,
-      "bytes": 1480244
+      "bytes": 1478656
     },
     {
       "type": "Observation",
