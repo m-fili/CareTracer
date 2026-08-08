@@ -684,5 +684,16 @@
   </div>
 
   <!-- ───────── Tweaks panel removed (Phase 1 ships the spec layout) ───────── -->
+
+  <!-- ───────── Connect health records ───────── -->
+  <script src="js/store.js"></script>
+  <script src="js/connect.js"></script>
+  <script>
+    // On first sign-in the patient has no record yet, so the connect flow
+    // opens automatically. Once a system is connected it stays quiet.
+    document.addEventListener("DOMContentLoaded", function () {
+      window.CareTracerConnect.autoOpen();
+    });
+  </script>
 </body>
 </html>
