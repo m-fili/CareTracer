@@ -1,0 +1,107 @@
+{
+  "transactionTime": "2026-08-07T00:00:00Z",
+  "request": "Patient/c69a04b7-10ce-5fad-3e10-a423a3bfd774/$export",
+  "requiresAccessToken": true,
+  "source": {
+    "id": "mgb",
+    "name": "Mass General Brigham"
+  },
+  "patient": {
+    "id": "c69a04b7-10ce-5fad-3e10-a423a3bfd774",
+    "name": "Riley817 Hugh686 Heidenreich818",
+    "birthDate": "1949-10-18",
+    "gender": "male"
+  },
+  "summary": {
+    "totalResources": 8608,
+    "firstEncounter": "1949-10-18",
+    "lastEncounter": "2026-07-28"
+  },
+  "output": [
+    {
+      "type": "Patient",
+      "url": "Patient.ndjson",
+      "count": 1,
+      "bytes": 3422
+    },
+    {
+      "type": "Encounter",
+      "url": "Encounter.ndjson",
+      "count": 304,
+      "bytes": 479410
+    },
+    {
+      "type": "Condition",
+      "url": "Condition.ndjson",
+      "count": 260,
+      "bytes": 264491
+    },
+    {
+      "type": "MedicationRequest",
+      "url": "MedicationRequest.ndjson",
+      "count": 494,
+      "bytes": 601055
+    },
+    {
+      "type": "Medication",
+      "url": "Medication.ndjson",
+      "count": 73,
+      "bytes": 27434
+    },
+    {
+      "type": "MedicationAdministration",
+      "url": "MedicationAdministration.ndjson",
+      "count": 73,
+      "bytes": 40485
+    },
+    {
+      "type": "Immunization",
+      "url": "Immunization.ndjson",
+      "count": 72,
+      "bytes": 54096
+    },
+    {
+      "type": "Procedure",
+      "url": "Procedure.ndjson",
+      "count": 1325,
+      "bytes": 1087167
+    },
+    {
+      "type": "CarePlan",
+      "url": "CarePlan.ndjson",
+      "count": 18,
+      "bytes": 31716
+    },
+    {
+      "type": "CareTeam",
+      "url": "CareTeam.ndjson",
+      "count": 18,
+      "bytes": 27854
+    },
+    {
+      "type": "Device",
+      "url": "Device.ndjson",
+      "count": 36,
+      "bytes": 30233
+    },
+    {
+      "type": "ImagingStudy",
+      "url": "ImagingStudy.ndjson",
+      "count": 91,
+      "bytes": 135999
+    },
+    {
+      "type": "DocumentReference",
+      "url": "DocumentReference.ndjson",
+      "count": 304,
+      "bytes": 1480244
+    },
+    {
+      "type": "Observation",
+      "url": "Observation.ndjson",
+      "count": 5539,
+      "bytes": 5631142
+    }
+  ],
+  "error": []
+}
