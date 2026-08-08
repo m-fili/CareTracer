@@ -1,0 +1,26 @@
+# CareTracer - Netlify configuration
+#
+# The site is static; there is no build step. Netlify is used instead of
+# GitHub Pages because it provides deploy previews, response headers, and
+# serverless functions for the point where the Companion needs a server-side
+# secret to reach a language model. None of those are possible on Pages.
+
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Synthetic FHIR export. Immutable for the life of a deploy, and large enough
+# that re-downloading it on every navigation would be wasteful. Netlify applies
+# gzip/brotli automatically, which takes the NDJSON down by roughly an order of
+# magnitude over the wire.
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
