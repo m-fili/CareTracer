@@ -511,28 +511,19 @@
           <p class="card-subhead">CareTracer brings your records together from every system that holds your care. You stay connected, and you can add or refresh a source any time.</p>
           <hr class="hairline" />
 
-          <div style="margin-top: 4px;">
-            <div class="source-row">
-              <div class="source-logo" aria-hidden="true">MGB</div>
+          <!-- Populated from the connected record by js/settings.js. The markup
+               below is the empty state, shown when nothing is connected yet. -->
+          <div id="ct-sources" style="margin-top: 4px;">
+            <div class="source-row" id="ct-sources-empty">
+              <div class="source-logo" aria-hidden="true">—</div>
               <div class="source-mid">
-                <span class="source-name">Mass General Brigham</span>
-                <span class="source-vendor">Epic · Specialty, neurology, and endocrinology care</span>
-                <span class="source-status"><span class="status-dot" aria-hidden="true"></span>Connected · Last synced May 12, 2026</span>
+                <span class="source-name">No health system connected</span>
+                <span class="source-vendor">Connect a health system to bring your records onto this device.</span>
               </div>
-              <button type="button" class="btn-refresh" aria-label="Refresh Mass General Brigham connection">Refresh</button>
-            </div>
-            <div class="source-row">
-              <div class="source-logo" aria-hidden="true">GS</div>
-              <div class="source-mid">
-                <span class="source-name">Granite State Community Hospital</span>
-                <span class="source-vendor">Oracle Health · Primary care, since your move to New Hampshire</span>
-                <span class="source-status"><span class="status-dot" aria-hidden="true"></span>Connected · Last synced May 12, 2026</span>
-              </div>
-              <button type="button" class="btn-refresh" aria-label="Refresh Granite State Community Hospital connection">Refresh</button>
             </div>
           </div>
 
-          <button type="button" class="btn-connect">+ Connect another health system</button>
+          <button type="button" class="btn-connect" id="ct-connect-another">+ Connect another health system</button>
 
           <p class="connectivity-caption">Connections use MyDataHelps and the same secure portal sign-in (SMART on FHIR) your health systems already support. CareTracer never sees or stores your portal password.</p>
         </section>
@@ -603,5 +594,9 @@
     </div>
   </div>
 
+  <script src="js/store.js"></script>
+  <script src="js/hydrate.js"></script>
+  <script src="js/connect.js"></script>
+  <script src="js/settings.js"></script>
 </body>
 </html>
