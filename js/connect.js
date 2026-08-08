@@ -13,22 +13,41 @@
 (function () {
   "use strict";
 
-  var DATA_ROOT = "data/riley817";
+  var DATA_ROOT = "data/john-doe";
 
-  /* Health systems shown in the picker. Text only, no marks or logos.
+  /* Icon glyphs for the provider tiles. Generic medical marks, deliberately
+   * not any organisation's actual logo: reproducing real health-system marks
+   * on a public demo is a trademark question we do not need to answer. */
+  var GLYPHS = {
+    hospital: '<path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M12 9v6M9 12h6"/>',
+    shield:   '<path d="M12 3l7 3v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/><path d="M12 9v5M9.5 11.5h5"/>',
+    pulse:    '<path d="M3 12h4l2-5 3 10 2.5-6 1.5 3h5"/>',
+    stetho:   '<path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M6 3h2M12 3h2"/><path d="M10 13v3a4 4 0 0 0 8 0v-2"/><circle cx="18" cy="11" r="2"/>',
+    campus:   '<path d="M3 21h18M6 21V10l6-4 6 4v11"/><path d="M10 21v-5h4v5"/>'
+  };
+
+  /* Health systems shown in the picker. Name and location only. Vendor is not
+   * attributed per organisation because that is a factual claim about a real
+   * institution that this demo has no way to verify.
    * Every entry currently resolves to the same synthetic export. */
   var PROVIDERS = [
-    { id: "mgb",  name: "Mass General Brigham",            vendor: "Epic",          loc: "Boston, MA" },
-    { id: "nh",   name: "Granite State Community Hospital", vendor: "Oracle Health", loc: "Nashua, NH" },
-    { id: "bilh", name: "Beth Israel Lahey Health",         vendor: "Epic",          loc: "Cambridge, MA" },
-    { id: "bmc",  name: "Boston Medical Center",            vendor: "Epic",          loc: "Boston, MA" },
-    { id: "dfci", name: "Dana-Farber Cancer Institute",     vendor: "Epic",          loc: "Boston, MA" },
-    { id: "umm",  name: "UMass Memorial Health",            vendor: "Epic",          loc: "Worcester, MA" },
-    { id: "tufts",name: "Tufts Medicine",                   vendor: "Epic",          loc: "Boston, MA" },
-    { id: "cha",  name: "Cambridge Health Alliance",        vendor: "Epic",          loc: "Cambridge, MA" },
-    { id: "dh",   name: "Dartmouth Health",                 vendor: "Epic",          loc: "Lebanon, NH" },
-    { id: "cmc",  name: "Catholic Medical Center",          vendor: "Meditech",      loc: "Manchester, NH" }
+    { id: "mgb",      name: "Mass General Brigham",              loc: "Boston, MA",        glyph: "hospital", tint: "#0E5C6F" },
+    { id: "mayo",     name: "Mayo Clinic",                       loc: "Rochester, MN",     glyph: "shield",   tint: "#4F90B8" },
+    { id: "ccf",      name: "Cleveland Clinic",                  loc: "Cleveland, OH",     glyph: "pulse",    tint: "#D55D5D" },
+    { id: "jhm",      name: "Johns Hopkins Medicine",            loc: "Baltimore, MD",     glyph: "campus",   tint: "#8B7BB8" },
+    { id: "kpnc",     name: "Kaiser Permanente – Northern California", loc: "Oakland, CA", glyph: "shield", tint: "#6FA88D" },
+    { id: "sinai",    name: "Mount Sinai",                       loc: "New York, NY",      glyph: "hospital", tint: "#E8985F" },
+    { id: "nyu",      name: "NYU Langone",                       loc: "New York, NY",      glyph: "campus",   tint: "#7C9BAA" },
+    { id: "stanford", name: "Stanford Medicine",                 loc: "Stanford, CA",      glyph: "stetho",   tint: "#D55D5D" },
+    { id: "ucsf",     name: "UCSF Health",                       loc: "San Francisco, CA", glyph: "pulse",    tint: "#4F90B8" },
+    { id: "duke",     name: "Duke Health",                       loc: "Durham, NC",        glyph: "shield",   tint: "#0E5C6F" }
   ];
+
+  function glyphSvg(p) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" ' +
+      'aria-hidden="true">' + (GLYPHS[p.glyph] || GLYPHS.hospital) + '</svg>';
+  }
 
   /* USCDI-shaped data classes, mapped to the FHIR resource types they cover. */
   var DATA_CLASSES = [
@@ -68,8 +87,15 @@
     '.ct-prov{display:flex;align-items:center;gap:13px;padding:11px 13px;border:1px solid #E5EAEE;',
     'border-radius:10px;cursor:pointer;background:#fff;text-align:left;width:100%;font:inherit;color:inherit}',
     '.ct-prov:hover{border-color:#0E5C6F;background:#FBFAF7}',
-    '.ct-av{width:38px;height:38px;border-radius:9px;background:rgba(179,217,223,.42);color:#0E5C6F;',
-    'display:grid;place-items:center;font:600 13px Inter,sans-serif;flex:none}',
+    '.ct-av{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;flex:none}',
+    '.ct-av svg{width:21px;height:21px}',
+    '.ct-intro{display:flex;flex-direction:column;gap:14px}',
+    '.ct-intro .ct-hero{width:56px;height:56px;border-radius:14px;background:rgba(179,217,223,.42);',
+    'color:#0E5C6F;display:grid;place-items:center}',
+    '.ct-intro .ct-hero svg{width:28px;height:28px}',
+    '.ct-pts{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column;gap:11px}',
+    '.ct-pts li{display:flex;gap:11px;align-items:flex-start;font-size:14px;line-height:1.5}',
+    '.ct-pts svg{width:17px;height:17px;color:#0E5C6F;flex:none;margin-top:2px}',
     '.ct-pn{font-weight:600;font-size:14.5px}',
     '.ct-pm{font-size:12.5px;color:#6B7785}',
     '.ct-cls{display:flex;flex-direction:column;gap:2px;margin:14px 0 0}',
@@ -106,12 +132,11 @@
     return n;
   }
 
-  function initials(name) {
-    return name.split(/\s+/).filter(Boolean).slice(0, 2)
-      .map(function (w) { return w[0]; }).join("").toUpperCase();
-  }
-
   function fmt(n) { return n.toLocaleString(); }
+
+  var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M20 6L9 17l-5-5"/></svg>';
 
   /* ---------------------------------------------------------------- modal */
 
@@ -139,6 +164,45 @@
     if (this.ov.parentNode) this.ov.parentNode.removeChild(this.ov);
   };
 
+  /* -------------------------------------------------------- step 0: intro */
+
+  function stepIntro(m) {
+    m.head("Let's bring your health records together",
+           "You have records at every place you have received care. CareTracer can gather them into one picture you can actually read.");
+    m.bd.innerHTML = "";
+    m.ft.innerHTML = "";
+
+    var wrap = el("div", "ct-intro");
+    var hero = el("div", "ct-hero",
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+      'stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/>' +
+      '<path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>');
+    wrap.appendChild(hero);
+
+    var pts = el("ul", "ct-pts");
+    [
+      "Sign in once with the same health-system portal account you already use.",
+      "Your records download straight to this device and stay here.",
+      "You choose what to share, and you can disconnect and delete at any time."
+    ].forEach(function (text) {
+      var li = el("li");
+      li.appendChild(el("span", null, CHECK));
+      li.appendChild(el("span", null, text));
+      pts.appendChild(li);
+    });
+    wrap.appendChild(pts);
+
+    m.bd.appendChild(wrap);
+    m.bd.appendChild(el("div", "ct-badge", "Demonstration · synthetic data only"));
+
+    var later = el("button", "ct-btn", "Not now");
+    later.addEventListener("click", function () { m.close(); });
+    var go = el("button", "ct-btn pri", "Connect a health system");
+    go.addEventListener("click", function () { stepPicker(m); });
+    m.ft.appendChild(later);
+    m.ft.appendChild(go);
+  }
+
   /* ------------------------------------------------------- step 1: picker */
 
   function stepPicker(m) {
@@ -162,10 +226,13 @@
       }).forEach(function (p) {
         var btn = el("button", "ct-prov");
         btn.type = "button";
-        btn.appendChild(el("span", "ct-av", initials(p.name)));
+        var av = el("span", "ct-av", glyphSvg(p));
+        av.style.background = p.tint + "1F";   // ~12% tint of the provider hue
+        av.style.color = p.tint;
+        btn.appendChild(av);
         var t = el("span");
         t.appendChild(el("span", "ct-pn", p.name));
-        t.appendChild(el("span", "ct-pm", p.loc + " · " + p.vendor));
+        t.appendChild(el("span", "ct-pm", p.loc));
         t.style.display = "flex";
         t.style.flexDirection = "column";
         btn.appendChild(t);
@@ -184,9 +251,9 @@
     m.bd.appendChild(list);
     m.bd.appendChild(el("div", "ct-badge", "Demonstration · synthetic data only"));
 
-    var later = el("button", "ct-btn", "Not now");
-    later.addEventListener("click", function () { m.close(); });
-    m.ft.appendChild(later);
+    var back = el("button", "ct-btn", "Back");
+    back.addEventListener("click", function () { stepIntro(m); });
+    m.ft.appendChild(back);
     setTimeout(function () { search.focus(); }, 30);
   }
 
@@ -420,7 +487,15 @@
 
   /* -------------------------------------------------------------- public */
 
-  function open() { stepPicker(new Modal()); }
+  /* open()  starts at the intro prompt (first sign-in).
+   * openPicker() jumps straight to the list, for "Connect another system"
+   * from Settings where the explanation would be redundant. */
+  function open() { stepIntro(new Modal()); }
+  function openPicker() { stepPicker(new Modal()); }
+
+  function disconnect() {
+    return window.CareTracerStore.clear();
+  }
 
   function autoOpen() {
     if (!window.CareTracerStore) return;
@@ -429,5 +504,11 @@
     });
   }
 
-  window.CareTracerConnect = { open: open, autoOpen: autoOpen, providers: PROVIDERS };
+  window.CareTracerConnect = {
+    open: open,
+    openPicker: openPicker,
+    autoOpen: autoOpen,
+    disconnect: disconnect,
+    providers: PROVIDERS
+  };
 })();
