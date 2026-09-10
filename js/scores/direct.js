@@ -9,6 +9,7 @@ import { buildPlot, buildDualPlot } from "./plot.js";
 import {
   STATUS, TRACK_COLOR, result, seriesOf, latestPlausible,
   trendOf, daysSince, cannotSeeFor, stalenessNote,
+  ambulatoryPoints, settingNote,
 } from "./common.js";
 
 /* Which six tiles the demo shows, and how each is banded. Bands are in value
@@ -116,7 +117,10 @@ function buildTile(tables, spec, today) {
     });
   }
 
-  const point = latestPlausible(series);
+  // Chronic trends are defined on outpatient values; acute-care results stay
+  // in the record and on the Map but do not steer the line.
+  const points = ambulatoryPoints(series);
+  const point = latestPlausible(points);
   if (!point) {
     return result({
       id: spec.id, label: spec.label, short: spec.short, category: "direct",
@@ -128,7 +132,8 @@ function buildTile(tables, spec, today) {
 
   const color = TRACK_COLOR[spec.track] || TRACK_COLOR.general;
   const second = spec.secondMeasure ? seriesOf(tables, spec.secondMeasure) : null;
-  const secondPoint = latestPlausible(second);
+  const secondPoints = second ? ambulatoryPoints(second) : null;
+  const secondPoint = latestPlausible(secondPoints);
 
   const plotOpts = {
     bands: spec.bands, color: color, axisLabel: series.unit,
@@ -136,11 +141,13 @@ function buildTile(tables, spec, today) {
     tickDecimals: spec.decimals === 1 ? 1 : 0,
   };
   const plot = second
-    ? buildDualPlot(series, second, Object.assign({ colorB: "#7C9BAA" }, plotOpts))
-    : buildPlot(series.points, plotOpts);
+    ? buildDualPlot({ points: points, short: series.short },
+                    { points: secondPoints, short: second.short },
+                    Object.assign({ colorB: "#7C9BAA" }, plotOpts))
+    : buildPlot(points, plotOpts);
 
   let [statusText, severity] = spec.status(point.value);
-  const trend = trendOf(series, { windowYears: 3, today: today });
+  const trend = trendOf(series, { points: points, windowYears: 3, today: today });
   const crossNotes = spec.crossCheck ? spec.crossCheck(point.value, tables) : null;
   if (crossNotes && crossNotes.severity) {
     statusText = crossNotes.statusText || statusText;
@@ -166,6 +173,7 @@ function buildTile(tables, spec, today) {
   const notes = cannotSeeFor(tables, measures, [
     crossNotes ? crossNotes.note : null,
     trend && trend.note ? trend.note : null,
+    settingNote(series, series.short || series.label),
     stalenessNote(series.short || series.label, point.date, 550, today),
     series.nImplausible
       ? series.nImplausible + " of " + series.n + " recorded results were set "
@@ -189,6 +197,8 @@ function buildTile(tables, spec, today) {
       n: series.n, nPlausible: series.nPlausible,
       firstDate: series.firstDate, firstValue: series.firstValue,
       betterDirection: series.betterDirection,
+      bySetting: series.bySetting,
+      nAmbulatory: points.length,
       sources: Array.from(new Set(series.points.map((p) => p.source))),
     },
   });
