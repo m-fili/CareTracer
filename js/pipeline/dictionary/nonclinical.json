@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "note": "Conditions that are social determinants, wellness findings, or administrative flags rather than clinical problems. They stay in the `conditions` table (they are real data and matter for context) but are excluded from the derived `problems` list, because a patient opening their problem list should not read 'Has a criminal record' as a diagnosis. Coded exclusions are authoritative; the patterns are a fallback for source systems that supply a different code set.",
+
+  "snomed": {
+    "314529007": "Medication review due (situation)",
+    "160903007": "Full-time employment (finding)",
+    "160904001": "Part-time employment (finding)",
+    "741062008": "Not in labor force (finding)",
+    "73438004": "Unemployed (finding)",
+    "423315002": "Limited social contact (finding)",
+    "422650009": "Social isolation (finding)",
+    "424393004": "Reports of violence in the environment (finding)",
+    "706893006": "Victim of intimate partner abuse (finding)",
+    "473461003": "Educated to high school level (finding)",
+    "224295006": "Received higher education (finding)",
+    "266948004": "Has a criminal record (finding)",
+    "160968000": "Risk activity involvement (finding)",
+    "73595000": "Stress (finding)",
+    "105531004": "Housing unsatisfactory (finding)",
+    "706875005": "Limited social contact",
+    "733423003": "Food insecurity (finding)",
+    "160932005": "Difficulty paying bills",
+    "5251000175109": "Transportation insecurity"
+  },
+
+  "patterns": [
+    "employment",
+    "labor force",
+    "unemployed",
+    "criminal record",
+    "social contact",
+    "social isolation",
+    "educated to",
+    "higher education",
+    "medication review",
+    "victim of",
+    "reports of violence",
+    "risk activity involvement",
+    "housing",
+    "food insecurity",
+    "transportation insecurity",
+    "difficulty paying"
+  ]
+}
