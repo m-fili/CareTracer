@@ -17,7 +17,8 @@
 import { buildPlot } from "./plot.js";
 import {
   STATUS, TRACK_COLOR, result, seriesOf, latestPlausible,
-  ratePerYear, trendOf, daysSince, cannotSeeFor, stalenessNote,
+  trendOf, daysSince, cannotSeeFor, stalenessNote,
+  ambulatoryPoints, settingNote,
 } from "./common.js";
 
 /* Pooled Cohort Equations coefficients, Goff DC Jr et al., Circulation 2013.
@@ -199,7 +200,9 @@ export function ascvdRisk(tables, options) {
   const tc = seriesOf(tables, "cholesterol_total");
   const hdl = seriesOf(tables, "hdl");
   const sbp = seriesOf(tables, "systolic_bp");
-  const pTc = latestPlausible(tc), pHdl = latestPlausible(hdl), pSbp = latestPlausible(sbp);
+  const pTc = latestPlausible(tc ? ambulatoryPoints(tc) : []);
+  const pHdl = latestPlausible(hdl ? ambulatoryPoints(hdl) : []);
+  const pSbp = latestPlausible(sbp ? ambulatoryPoints(sbp) : []);
   const smoke = smokingStatus(tables);
   const dm = hasDiabetes(tables);
   const treated = onAntihypertensive(tables);
@@ -257,7 +260,8 @@ export function ascvdRisk(tables, options) {
 export function ldlGoal(tables, options) {
   const today = (options || {}).today;
   const series = seriesOf(tables, "ldl");
-  const point = latestPlausible(series);
+  const ldlPoints = series ? ambulatoryPoints(series) : [];
+  const point = latestPlausible(ldlPoints);
   const established = establishedAscvd(tables);
   const veryHighRisk = established.length > 0;
   const goal = veryHighRisk ? 70 : 100;
@@ -280,7 +284,7 @@ export function ldlGoal(tables, options) {
   const onStatin = (tables.med_episodes || []).filter((m) => m.active
     && /statin|atorvastatin|simvastatin|rosuvastatin|pravastatin|lovastatin/i.test(m.display || ""));
 
-  const plot = buildPlot(series.points, {
+  const plot = buildPlot(ldlPoints, {
     bands: [
       { to: goal, color: "#6FA88D", label: "at goal" },
       { from: goal, to: goal + 30, color: "#D49A4E", label: "above goal" },
@@ -299,7 +303,7 @@ export function ldlGoal(tables, options) {
       ? "At the under-" + goal + " goal"
       : Math.round(gap) + " mg/dL above the under-" + goal + " goal",
     severity: severity,
-    trend: trendOf(series, { windowYears: 3, today: today }),
+    trend: trendOf(series, { points: ldlPoints, windowYears: 3, today: today }),
     asOf: point.date, staleDays: daysSince(point.date, today),
     inputs: [
       { label: "LDL cholesterol", value: Math.round(point.value), unit: "mg/dL", date: point.date, ref: point.ref },
@@ -312,6 +316,7 @@ export function ldlGoal(tables, options) {
     }))),
     cannotSee: cannotSeeFor(tables, ["ldl"], [
       stalenessNote("LDL cholesterol", point.date, 550, today),
+      settingNote(series, "LDL"),
       onStatin.length > 1
         ? onStatin.length + " cholesterol medications are listed as active at "
           + "the same time, which is worth reviewing with your care team."
