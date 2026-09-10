@@ -115,6 +115,18 @@
     });
   }
 
+  /** Every stored resource. The pipeline needs the whole record at once. */
+  function getAll() {
+    return openDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction(STORE_RESOURCES, "readonly");
+        var req = tx.objectStore(STORE_RESOURCES).getAll();
+        req.onsuccess = function () { db.close(); resolve(req.result || []); };
+        req.onerror = function () { reject(req.error); };
+      });
+    });
+  }
+
   function clear() {
     return openDb().then(function (db) {
       return new Promise(function (resolve, reject) {
@@ -132,6 +144,7 @@
     setConnection: setConnection,
     getConnection: getConnection,
     getByType: getByType,
+    getAll: getAll,
     get: get,
     clear: clear,
   };
