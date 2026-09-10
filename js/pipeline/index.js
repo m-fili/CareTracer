@@ -79,9 +79,18 @@ export function buildTables(resources, dictionary, options) {
   tables.problems = derive.deriveProblems(tables.conditions, nonclinical);
   tables.med_episodes = derive.deriveMedicationEpisodes(tables.medications);
 
+  // Settings must be attached before anything reads the observations: an
+  // inpatient result and an outpatient one are not interchangeable, and a
+  // score has to be able to tell them apart.
+  derive.tagSettings(tables, tables.encounters);
+
+  // Then collapse duplicate specimens reported at the same visit. Marked,
+  // not deleted, so the rows stay citable.
+  const duplicateIssues = derive.collapseSameEncounter(tables, measures);
+
   // Validation runs before series so implausible points are already marked
   // and can be excluded from "latest value" without being deleted.
-  const issues = runValidation(tables, measures, knownRefs);
+  const issues = runValidation(tables, measures, knownRefs).concat(duplicateIssues);
 
   tables.series = derive.deriveSeries(tables, measures);
   const cadenceIssues = validateCadence(tables.series, measures);
