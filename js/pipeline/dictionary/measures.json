@@ -1,0 +1,294 @@
+{
+  "version": "1.0.0",
+  "note": "Measure definitions keyed by LOINC. Never match on display text: display strings vary by source system and substring matching silently captures the wrong tests. This file is the shared contract between the in-app JS pipeline and any offline analysis, so both agree by construction.",
+
+  "measures": {
+    "hba1c": {
+      "label": "Hemoglobin A1c", "short": "HbA1c", "table": "labs",
+      "loinc": ["4548-4", "17856-6", "4549-2"],
+      "unit": "%", "ucum": "%",
+      "referenceRange": { "low": 4.0, "high": 5.6 },
+      "plausible": { "min": 3.0, "max": 20.0 },
+      "betterDirection": "down", "minIntervalDays": 60, "track": "glycemic"
+    },
+    "glucose": {
+      "label": "Glucose", "short": "Glucose", "table": "labs",
+      "loinc": ["2345-7", "2339-0"],
+      "unit": "mg/dL", "ucum": "mg/dL",
+      "referenceRange": { "low": 70, "high": 100 },
+      "plausible": { "min": 15, "max": 1500 },
+      "betterDirection": "down", "track": "glycemic"
+    },
+    "egfr": {
+      "label": "Estimated glomerular filtration rate", "short": "eGFR", "table": "labs",
+      "loinc": ["33914-3", "62238-1", "48642-3", "48643-1"],
+      "unit": "mL/min/1.73m2", "ucum": "mL/min/{1.73_m2}",
+      "referenceRange": { "low": 90 },
+      "plausible": { "min": 2, "max": 150 },
+      "betterDirection": "up", "minIntervalDays": 30, "track": "kidney"
+    },
+    "creatinine": {
+      "label": "Creatinine", "short": "Creatinine", "table": "labs",
+      "loinc": ["2160-0", "38483-4"],
+      "unit": "mg/dL", "ucum": "mg/dL",
+      "referenceRange": { "low": 0.6, "high": 1.3 },
+      "plausible": { "min": 0.1, "max": 20 },
+      "betterDirection": "down", "track": "kidney"
+    },
+    "uacr": {
+      "label": "Urine albumin/creatinine ratio", "short": "UACR", "table": "labs",
+      "loinc": ["14959-1", "9318-7"],
+      "unit": "mg/g", "ucum": "mg/g",
+      "referenceRange": { "high": 30 },
+      "plausible": { "min": 0, "max": 5000 },
+      "betterDirection": "down", "minIntervalDays": 60, "track": "kidney"
+    },
+    "bun": {
+      "label": "Blood urea nitrogen", "short": "BUN", "table": "labs",
+      "loinc": ["3094-0", "6299-2"],
+      "unit": "mg/dL", "ucum": "mg/dL",
+      "referenceRange": { "low": 7, "high": 20 },
+      "plausible": { "min": 1, "max": 250 },
+      "betterDirection": "down", "track": "kidney"
+    },
+    "ldl": {
+      "label": "LDL cholesterol", "short": "LDL", "table": "labs",
+      "loinc": ["18262-6", "13457-7", "2089-1"],
+      "unit": "mg/dL", "ucum": "mg/dL",
+      "referenceRange": { "high": 100 },
+      "plausible": { "min": 5, "max": 500 },
+      "betterDirection": "down", "minIntervalDays": 60, "track": "cardiovascular"
+    },
+    "hdl": {
+      "label": "HDL cholesterol", "short": "HDL", "table": "labs",
+      "loinc": ["2085-9"],
+      "unit": "mg/dL", "ucum": "mg/dL",
+      "referenceRange": { "low": 40 },
+      "plausible": { "min": 5, "max": 200 },
+      "betterDirection": "up", "track": "cardiovascular"
+    },
+    "cholesterol_total": {
+      "label": "Total cholesterol", "short": "Total chol", "table": "labs",
+      "loinc": ["2093-3"],
+      "unit": "mg/dL", "ucum": "mg/dL",
+      "referenceRange": { "high": 200 },
+      "plausible": { "min": 50, "max": 700 },
+      "betterDirection": "down", "track": "cardiovascular"
+    },
+    "triglycerides": {
+      "label": "Triglycerides", "short": "Trig", "table": "labs",
+      "loinc": ["2571-8"],
+      "unit": "mg/dL", "ucum": "mg/dL",
+      "referenceRange": { "high": 150 },
+      "plausible": { "min": 10, "max": 3000 },
+      "betterDirection": "down", "track": "cardiovascular"
+    },
+    "hemoglobin": {
+      "label": "Hemoglobin", "short": "Hgb", "table": "labs",
+      "loinc": ["718-7"],
+      "unit": "g/dL", "ucum": "g/dL",
+      "referenceRange": { "low": 13.5, "high": 17.5 },
+      "plausible": { "min": 2, "max": 25 },
+      "betterDirection": "up"
+    },
+    "hematocrit": {
+      "label": "Hematocrit", "short": "Hct", "table": "labs",
+      "loinc": ["4544-3"], "unit": "%", "ucum": "%",
+      "referenceRange": { "low": 38, "high": 50 },
+      "plausible": { "min": 5, "max": 75 },
+      "betterDirection": "up"
+    },
+    "platelets": {
+      "label": "Platelets", "short": "Plt", "table": "labs",
+      "loinc": ["777-3"], "unit": "10*3/uL", "ucum": "10*3/uL",
+      "referenceRange": { "low": 150, "high": 400 },
+      "plausible": { "min": 2, "max": 2000 },
+      "betterDirection": "up"
+    },
+    "wbc": {
+      "label": "White blood cells", "short": "WBC", "table": "labs",
+      "loinc": ["6690-2"], "unit": "10*3/uL", "ucum": "10*3/uL",
+      "referenceRange": { "low": 4.5, "high": 11 },
+      "plausible": { "min": 0.1, "max": 200 },
+      "betterDirection": "neutral"
+    },
+    "potassium": {
+      "label": "Potassium", "short": "K", "table": "labs",
+      "loinc": ["2823-3", "6298-4"], "unit": "mmol/L", "ucum": "mmol/L",
+      "referenceRange": { "low": 3.5, "high": 5.1 },
+      "plausible": { "min": 1.0, "max": 10.0 },
+      "betterDirection": "neutral", "track": "kidney"
+    },
+    "sodium": {
+      "label": "Sodium", "short": "Na", "table": "labs",
+      "loinc": ["2951-2", "2947-0"], "unit": "mmol/L", "ucum": "mmol/L",
+      "referenceRange": { "low": 135, "high": 145 },
+      "plausible": { "min": 90, "max": 200 },
+      "betterDirection": "neutral"
+    },
+    "alt": {
+      "label": "Alanine aminotransferase", "short": "ALT", "table": "labs",
+      "loinc": ["1742-6"], "unit": "U/L", "ucum": "U/L",
+      "referenceRange": { "high": 55 },
+      "plausible": { "min": 1, "max": 10000 },
+      "betterDirection": "down"
+    },
+    "ast": {
+      "label": "Aspartate aminotransferase", "short": "AST", "table": "labs",
+      "loinc": ["1920-8"], "unit": "U/L", "ucum": "U/L",
+      "referenceRange": { "high": 48 },
+      "plausible": { "min": 1, "max": 10000 },
+      "betterDirection": "down"
+    },
+    "albumin": {
+      "label": "Albumin", "short": "Alb", "table": "labs",
+      "loinc": ["1751-7"], "unit": "g/dL", "ucum": "g/dL",
+      "referenceRange": { "low": 3.5, "high": 5.0 },
+      "plausible": { "min": 0.5, "max": 8 },
+      "betterDirection": "up"
+    },
+
+    "systolic_bp": {
+      "label": "Systolic blood pressure", "short": "Systolic", "table": "vitals",
+      "loinc": ["8480-6"], "unit": "mmHg", "ucum": "mm[Hg]",
+      "referenceRange": { "high": 130 },
+      "plausible": { "min": 50, "max": 280 },
+      "betterDirection": "down", "track": "cardiovascular"
+    },
+    "diastolic_bp": {
+      "label": "Diastolic blood pressure", "short": "Diastolic", "table": "vitals",
+      "loinc": ["8462-4"], "unit": "mmHg", "ucum": "mm[Hg]",
+      "referenceRange": { "high": 80 },
+      "plausible": { "min": 20, "max": 160 },
+      "betterDirection": "down", "track": "cardiovascular"
+    },
+    "heart_rate": {
+      "label": "Heart rate", "short": "HR", "table": "vitals",
+      "loinc": ["8867-4"], "unit": "bpm", "ucum": "/min",
+      "referenceRange": { "low": 60, "high": 100 },
+      "plausible": { "min": 20, "max": 250 },
+      "betterDirection": "neutral"
+    },
+    "respiratory_rate": {
+      "label": "Respiratory rate", "short": "RR", "table": "vitals",
+      "loinc": ["9279-1"], "unit": "/min", "ucum": "/min",
+      "referenceRange": { "low": 12, "high": 20 },
+      "plausible": { "min": 4, "max": 80 },
+      "betterDirection": "neutral"
+    },
+    "body_weight": {
+      "label": "Body weight", "short": "Weight", "table": "vitals",
+      "loinc": ["29463-7"], "unit": "kg", "ucum": "kg",
+      "plausible": { "min": 0.3, "max": 400 },
+      "betterDirection": "neutral", "lifespan": true
+    },
+    "body_height": {
+      "label": "Body height", "short": "Height", "table": "vitals",
+      "loinc": ["8302-2"], "unit": "cm", "ucum": "cm",
+      "plausible": { "min": 20, "max": 260 },
+      "betterDirection": "neutral", "lifespan": true
+    },
+    "bmi": {
+      "label": "Body mass index", "short": "BMI", "table": "vitals",
+      "loinc": ["39156-5"],
+      "excludeLoinc": ["59576-9"],
+      "unit": "kg/m2", "ucum": "kg/m2",
+      "referenceRange": { "low": 18.5, "high": 25 },
+      "plausible": { "min": 8, "max": 90 },
+      "betterDirection": "down", "lifespan": true
+    },
+    "oxygen_saturation": {
+      "label": "Oxygen saturation", "short": "SpO2", "table": "vitals",
+      "loinc": ["2708-6", "59408-5"], "unit": "%", "ucum": "%",
+      "referenceRange": { "low": 95 },
+      "plausible": { "min": 40, "max": 100 },
+      "betterDirection": "up"
+    },
+    "body_temperature": {
+      "label": "Body temperature", "short": "Temp", "table": "vitals",
+      "loinc": ["8310-5"], "unit": "Cel", "ucum": "Cel",
+      "referenceRange": { "low": 36.0, "high": 37.5 },
+      "plausible": { "min": 25, "max": 45 },
+      "betterDirection": "neutral"
+    },
+    "pain_score": {
+      "label": "Pain severity", "short": "Pain", "table": "vitals",
+      "loinc": ["72514-3"], "unit": "{score}", "ucum": "{score}",
+      "scale": { "min": 0, "max": 10, "integer": true },
+      "plausible": { "min": 0, "max": 10 },
+      "betterDirection": "down"
+    },
+
+    "mmse": {
+      "label": "Mini-Mental State Examination", "short": "MMSE", "table": "surveys",
+      "loinc": ["72106-8"], "unit": "{score}", "ucum": "{score}",
+      "scale": { "min": 0, "max": 30, "integer": true },
+      "plausible": { "min": 0, "max": 30 },
+      "betterDirection": "up", "track": "cognitive", "instrument": true
+    },
+    "moca": {
+      "label": "Montreal Cognitive Assessment", "short": "MoCA", "table": "surveys",
+      "loinc": ["72172-0"], "unit": "{score}", "ucum": "{score}",
+      "scale": { "min": 0, "max": 30, "integer": true },
+      "plausible": { "min": 0, "max": 30 },
+      "betterDirection": "up", "track": "cognitive", "instrument": true,
+      "verify": "LOINC binding not confirmed against an authoritative terminology service"
+    },
+    "cdr": {
+      "label": "Clinical Dementia Rating", "short": "CDR", "table": "surveys",
+      "loinc": ["72133-2"], "unit": "{score}", "ucum": "{score}",
+      "scale": { "min": 0, "max": 3 },
+      "plausible": { "min": 0, "max": 3 },
+      "betterDirection": "down", "track": "cognitive", "instrument": true,
+      "verify": "LOINC binding NOT confirmed; verify before clinical display"
+    },
+    "phq2": {
+      "label": "PHQ-2 depression screen", "short": "PHQ-2", "table": "surveys",
+      "loinc": ["55758-7"], "unit": "{score}", "ucum": "{score}",
+      "scale": { "min": 0, "max": 6, "integer": true },
+      "plausible": { "min": 0, "max": 6 },
+      "betterDirection": "down", "instrument": true
+    },
+    "phq9": {
+      "label": "PHQ-9 depression severity", "short": "PHQ-9", "table": "surveys",
+      "loinc": ["44261-6"], "unit": "{score}", "ucum": "{score}",
+      "scale": { "min": 0, "max": 27, "integer": true },
+      "plausible": { "min": 0, "max": 27 },
+      "betterDirection": "down", "instrument": true
+    },
+    "gad7": {
+      "label": "GAD-7 anxiety severity", "short": "GAD-7", "table": "surveys",
+      "loinc": ["70274-6"], "unit": "{score}", "ucum": "{score}",
+      "scale": { "min": 0, "max": 21, "integer": true },
+      "plausible": { "min": 0, "max": 21 },
+      "betterDirection": "down", "instrument": true
+    },
+    "audit_c": {
+      "label": "AUDIT-C alcohol screen", "short": "AUDIT-C", "table": "surveys",
+      "loinc": ["75626-2"], "unit": "{score}", "ucum": "{score}",
+      "scale": { "min": 0, "max": 12, "integer": true },
+      "plausible": { "min": 0, "max": 12 },
+      "betterDirection": "down", "instrument": true
+    },
+    "dast10": {
+      "label": "DAST-10 drug use screen", "short": "DAST-10", "table": "surveys",
+      "loinc": ["82667-7"], "unit": "{score}", "ucum": "{score}",
+      "scale": { "min": 0, "max": 10, "integer": true },
+      "plausible": { "min": 0, "max": 10 },
+      "betterDirection": "down", "instrument": true
+    },
+    "morse_fall": {
+      "label": "Morse Fall Scale", "short": "Fall risk", "table": "surveys",
+      "loinc": ["59460-6"], "unit": "{score}", "ucum": "{score}",
+      "scale": { "min": 0, "max": 125, "integer": true },
+      "plausible": { "min": 0, "max": 125 },
+      "betterDirection": "down", "instrument": true
+    },
+
+    "smoking_status": {
+      "label": "Tobacco smoking status", "short": "Smoking", "table": "social",
+      "loinc": ["72166-2"], "valueType": "code",
+      "betterDirection": "neutral"
+    }
+  }
+}
