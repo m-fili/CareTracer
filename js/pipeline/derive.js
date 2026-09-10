@@ -70,6 +70,112 @@ export function deriveProblems(conditions, nonclinical) {
   });
 }
 
+/* Encounter class (HL7 v3 ActCode) -> the setting a result was taken in.
+ * An outpatient value and an inpatient value answer different clinical
+ * questions, so the setting has to travel with the row. */
+const SETTING_BY_CLASS = {
+  AMB: "ambulatory", VR: "ambulatory", HH: "ambulatory", FLD: "ambulatory",
+  IMP: "inpatient", ACUTE: "inpatient", NONAC: "inpatient",
+  SS: "inpatient", OBSENC: "inpatient",
+  EMER: "emergency",
+};
+
+/** Stamp each observation row with the setting its encounter took place in. */
+export function tagSettings(observationTables, encounters) {
+  const byRef = new Map((encounters || []).map((e) => [e.ref, e]));
+  ["labs", "vitals", "surveys", "social", "other"].forEach(function (table) {
+    (observationTables[table] || []).forEach(function (row) {
+      const enc = typeof row.encounterRef === "string" ? byRef.get(row.encounterRef) : null;
+      row.encounterClass = enc ? enc.classCode : null;
+      row.encounterType = enc ? enc.type : null;
+      row.setting = enc ? (SETTING_BY_CLASS[enc.classCode] || "unknown") : "unknown";
+    });
+  });
+}
+
+/**
+ * Collapse duplicate results for the same measure at the same encounter.
+ *
+ * Synthea orders overlapping panels at one visit and draws each value
+ * independently, so a single encounter can report an eGFR of 54 and 18 from
+ * what should be one specimen. Real labs do not do this, and plotting both
+ * makes a chronic trend unreadable.
+ *
+ * The duplicates are marked, never deleted, and the row kept is the ACTUAL
+ * observation nearest the group median rather than a synthesised average, so
+ * every plotted point still cites a real resource.
+ */
+export function collapseSameEncounter(observationTables, dictionary) {
+  const defs = (dictionary && dictionary.measures) || {};
+  const tally = {};
+
+  ["labs", "vitals", "surveys", "social"].forEach(function (table) {
+    const groups = new Map();
+    (observationTables[table] || []).forEach(function (r) {
+      if (!r.measure || r.value === null || r.value === undefined) return;
+      // Same specimen means same encounter AND same day. An inpatient
+      // admission is one Encounter spanning several days, so keying on the
+      // encounter alone would collapse a week of daily labs into one point.
+      const scope = (typeof r.encounterRef === "string" && r.encounterRef)
+        ? r.encounterRef : "no-encounter";
+      const key = r.measure + "|" + scope + "|" + (r.date || "");
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(r);
+    });
+
+    groups.forEach(function (group) {
+      if (group.length < 2) return;
+      const sorted = group.map((g) => g.value).slice().sort((a, b) => a - b);
+      const mid = sorted.length % 2
+        ? sorted[(sorted.length - 1) / 2]
+        : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2;
+
+      let keep = group[0];
+      let best = Infinity;
+      group.forEach(function (g) {
+        const d = Math.abs(g.value - mid);
+        if (d < best) { best = d; keep = g; }
+      });
+
+      const spread = sorted[sorted.length - 1] - sorted[0];
+      group.forEach(function (g) {
+        if (g === keep) {
+          g.representative = true;
+          g.collapsedFrom = group.length;
+          g.collapsedSpread = Number(spread.toFixed(3));
+        } else {
+          g.superseded = true;
+          g.supersededBy = keep.ref;
+        }
+      });
+
+      const t = tally[keep.measure] || (tally[keep.measure] = {
+        encounters: 0, dropped: 0, maxSpread: 0, unit: keep.unit, ref: keep.ref,
+      });
+      t.encounters += 1;
+      t.dropped += group.length - 1;
+      if (spread > t.maxSpread) t.maxSpread = spread;
+    });
+  });
+
+  return Object.keys(tally).map(function (measure) {
+    const t = tally[measure];
+    const label = (defs[measure] && defs[measure].label) || measure;
+    return {
+      severity: "warning", rule: "duplicate-at-encounter", measure: measure,
+      table: (defs[measure] && defs[measure].table) || null, ref: t.ref, date: null,
+      message: t.encounters + " visit" + (t.encounters === 1 ? "" : "s")
+        + " reported more than one " + label + " result from what should be a "
+        + "single specimen; " + t.dropped + " duplicate"
+        + (t.dropped === 1 ? " was" : "s were") + " set aside and the value "
+        + "closest to the median kept (largest disagreement "
+        + t.maxSpread.toFixed(1) + (t.unit ? " " + t.unit : "") + ").",
+      encounters: t.encounters, dropped: t.dropped,
+      maxSpread: Number(t.maxSpread.toFixed(2)),
+    };
+  });
+}
+
 /** One row per drug: first prescribed, last touched, currently active. */
 export function deriveMedicationEpisodes(medications) {
   const byDrug = new Map();
@@ -111,10 +217,13 @@ export function deriveSeries(observationTables, dictionary) {
   ["labs", "vitals", "surveys", "social"].forEach(function (table) {
     (observationTables[table] || []).forEach(function (row) {
       if (!row.measure || row.value === null || row.value === undefined) return;
+      if (row.superseded) return;   // duplicate specimen, kept in the table
       if (!byMeasure.has(row.measure)) byMeasure.set(row.measure, []);
       byMeasure.get(row.measure).push({
         date: row.date, value: row.value, unit: row.unit,
         ref: row.ref, source: row.source, plausible: row.plausible !== false,
+        setting: row.setting || "unknown",
+        encounterClass: row.encounterClass || null,
       });
     });
   });
@@ -160,6 +269,9 @@ export function deriveSeries(observationTables, dictionary) {
       referenceRange: def.referenceRange || null,
       scale: def.scale || null,
       points: points,
+      bySetting: points.reduce(function (acc, p) {
+        acc[p.setting] = (acc[p.setting] || 0) + 1; return acc;
+      }, {}),
       ref: last ? last.ref : null,
     });
   });
