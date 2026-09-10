@@ -14,6 +14,7 @@ import { buildPlot } from "./plot.js";
 import {
   STATUS, TRACK_COLOR, result, seriesOf, latestPlausible,
   ratePerYear, daysSince, cannotSeeFor, stalenessNote,
+  ambulatoryPoints, settingNote,
 } from "./common.js";
 
 const INSTRUMENTS = {
@@ -81,7 +82,10 @@ export function cognitiveTrajectory(tables, options) {
   const chosen = available[0];
   const inst = chosen.def;
   const series = chosen.series;
-  const point = latestPlausible(series);
+  // Cognitive testing during an admission reflects delirium as much as
+  // baseline; the filter falls back to all points when too few remain.
+  const points = ambulatoryPoints(series);
+  const point = latestPlausible(points);
 
   if (!point) {
     return result(Object.assign({}, base, {
@@ -96,8 +100,8 @@ export function cognitiveTrajectory(tables, options) {
   // raw value and the rounding as an issue.
   const shown = Math.round(point.value);
   const stage = stageFor(inst, shown);
-  const rate = ratePerYear(series.points);
-  const usable = series.points.filter((p) => p.plausible !== false);
+  const rate = ratePerYear(points);
+  const usable = points.filter((p) => p.plausible !== false);
 
   const bands = inst.stages.map((s) => ({
     from: s.from, to: s.to, label: s.stage,
@@ -106,7 +110,7 @@ export function cognitiveTrajectory(tables, options) {
     opacity: s.severity === "alert" ? 0.10 : 0.12,
   }));
 
-  const plot = buildPlot(series.points, {
+  const plot = buildPlot(points, {
     domain: [0, inst.max],
     bands: bands,
     color: TRACK_COLOR.cognitive,
@@ -126,6 +130,7 @@ export function cognitiveTrajectory(tables, options) {
 
   const notes = cannotSeeFor(tables, [inst.measure], [
     stalenessNote(inst.name, point.date, 400, today),
+    settingNote(series, inst.name),
     usable.length <= 3
       ? "Only " + usable.length + " " + inst.name + " result"
         + (usable.length === 1 ? " is" : "s are") + " on file, which is too few "
