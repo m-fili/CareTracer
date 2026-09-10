@@ -11,7 +11,8 @@
 import { buildPlot } from "./plot.js";
 import {
   STATUS, TRACK_COLOR, result, seriesOf, latestPlausible,
-  ratePerYear, trendOf, daysSince, cannotSeeFor, stalenessNote,
+  trendOf, daysSince, cannotSeeFor, stalenessNote,
+  ambulatoryPoints, settingNote,
 } from "./common.js";
 
 const GUIDELINE = {
@@ -60,8 +61,12 @@ export function kdigoStage(tables, options) {
   const today = (options || {}).today;
   const egfr = seriesOf(tables, "egfr");
   const uacr = seriesOf(tables, "uacr");
-  const pEgfr = latestPlausible(egfr);
-  const pUacr = latestPlausible(uacr);
+  // KDIGO staging is defined on stable outpatient values, so acute-care
+  // results are excluded here by design rather than by accident.
+  const egfrPoints = egfr ? ambulatoryPoints(egfr) : [];
+  const uacrPoints = uacr ? ambulatoryPoints(uacr) : [];
+  const pEgfr = latestPlausible(egfrPoints);
+  const pUacr = latestPlausible(uacrPoints);
 
   const base = {
     id: "kdigo", label: "Kidney health stage", short: "KDIGO",
@@ -84,7 +89,7 @@ export function kdigoStage(tables, options) {
   const riskKey = a ? RISK_GRID[g.code][a.code] : null;
   const risk = riskKey ? RISK_META[riskKey] : null;
 
-  const plot = buildPlot(egfr.points, {
+  const plot = buildPlot(egfrPoints, {
     domain: [0, Math.max(105, pEgfr.value + 15)],
     bands: [
       { from: 90, color: "#6FA88D", label: "G1" },
@@ -128,11 +133,13 @@ export function kdigoStage(tables, options) {
     stage: display,
     stageLabel: risk ? risk.label : g.label,
     severity: risk ? risk.severity : "caution",
-    trend: trendOf(egfr, { windowYears: 3, today: today }),
+    trend: trendOf(egfr, { points: egfrPoints, windowYears: 3, today: today }),
     asOf: pEgfr.date, staleDays: daysSince(pEgfr.date, today),
     inputs: inputs,
     cannotSee: cannotSeeFor(tables, ["egfr", "uacr"], [
       stalenessNote("eGFR", pEgfr.date, 400, today),
+      settingNote(egfr, "eGFR"),
+      settingNote(uacr, "urine albumin"),
       !pUacr
         ? "No urine albumin result is on file, so only the filtration side of "
           + "the stage could be worked out."
