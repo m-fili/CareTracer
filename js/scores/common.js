@@ -49,10 +49,44 @@ export function seriesOf(tables, measureId) {
   return (tables.series || []).find((s) => s.measure === measureId) || null;
 }
 
+/**
+ * Points taken in an outpatient setting.
+ *
+ * Chronic-disease staging and long-run trends are defined on stable outpatient
+ * values. An eGFR drawn during an ICU admission is acute kidney injury, not a
+ * new baseline, and averaging the two answers neither question. Results whose
+ * setting is unknown are kept rather than discarded, and the filter backs off
+ * entirely if it would leave too little to plot.
+ */
+export function ambulatoryPoints(series, minPoints) {
+  if (!series) return [];
+  const all = series.points || [];
+  const kept = all.filter((p) => p.setting === "ambulatory" || p.setting === "unknown");
+  return kept.length >= (minPoints === undefined ? 2 : minPoints) ? kept : all;
+}
+
+/** Note naming what the setting filter removed, or null when it removed nothing. */
+export function settingNote(series, label) {
+  const counts = (series && series.bySetting) || {};
+  const excluded = (counts.inpatient || 0) + (counts.emergency || 0);
+  if (!excluded) return null;
+  const parts = [];
+  if (counts.inpatient) parts.push(counts.inpatient + " taken as an inpatient");
+  if (counts.emergency) parts.push(counts.emergency + " taken in the emergency department");
+  return excluded + " " + label + " result"
+    + (excluded === 1 ? " (" : "s (")
+    + parts.join(" and ") + (excluded === 1 ? ") is" : ") are")
+    + " left out of this trend, because results "
+    + "during acute illness reflect that illness rather than your usual level. "
+    + "They remain in your record and on your Health Map.";
+}
+
 /** Latest point the validator did not reject. */
-export function latestPlausible(series) {
-  if (!series) return null;
-  const ok = (series.points || []).filter((p) => p.plausible !== false);
+export function latestPlausible(seriesOrPoints) {
+  if (!seriesOrPoints) return null;
+  const points = Array.isArray(seriesOrPoints)
+    ? seriesOrPoints : (seriesOrPoints.points || []);
+  const ok = points.filter((p) => p.plausible !== false);
   return ok.length ? ok[ok.length - 1] : null;
 }
 
@@ -137,7 +171,7 @@ export const TREND_R2 = { DIRECTION: 0.25, RATE: 0.5 };
 export function trendOf(series, options) {
   if (!series) return null;
   const o = options || {};
-  const fit = rateOverWindow(series.points, o.windowYears || 3, o.today);
+  const fit = rateOverWindow(o.points || series.points, o.windowYears || 3, o.today);
 
   if (!fit) {
     return {
