@@ -22,85 +22,85 @@
       "type": "Patient",
       "url": "Patient.ndjson",
       "count": 1,
-      "bytes": 3398
+      "bytes": 3435
     },
     {
       "type": "Encounter",
       "url": "Encounter.ndjson",
       "count": 304,
-      "bytes": 472722
+      "bytes": 483970
     },
     {
       "type": "Condition",
       "url": "Condition.ndjson",
       "count": 260,
-      "bytes": 264491
+      "bytes": 274111
     },
     {
       "type": "MedicationRequest",
       "url": "MedicationRequest.ndjson",
       "count": 494,
-      "bytes": 601055
+      "bytes": 619333
     },
     {
       "type": "Medication",
       "url": "Medication.ndjson",
       "count": 73,
-      "bytes": 27434
+      "bytes": 30135
     },
     {
       "type": "MedicationAdministration",
       "url": "MedicationAdministration.ndjson",
       "count": 73,
-      "bytes": 40485
+      "bytes": 43843
     },
     {
       "type": "Immunization",
       "url": "Immunization.ndjson",
       "count": 72,
-      "bytes": 54096
+      "bytes": 56760
     },
     {
       "type": "Procedure",
       "url": "Procedure.ndjson",
       "count": 1325,
-      "bytes": 1087167
+      "bytes": 1136192
     },
     {
       "type": "CarePlan",
       "url": "CarePlan.ndjson",
       "count": 18,
-      "bytes": 31716
+      "bytes": 32382
     },
     {
       "type": "CareTeam",
       "url": "CareTeam.ndjson",
       "count": 18,
-      "bytes": 27458
+      "bytes": 28124
     },
     {
       "type": "Device",
       "url": "Device.ndjson",
       "count": 36,
-      "bytes": 30233
+      "bytes": 31565
     },
     {
       "type": "ImagingStudy",
       "url": "ImagingStudy.ndjson",
       "count": 91,
-      "bytes": 135999
+      "bytes": 140185
     },
     {
       "type": "DocumentReference",
       "url": "DocumentReference.ndjson",
       "count": 304,
-      "bytes": 1478656
+      "bytes": 1489904
     },
     {
       "type": "Observation",
       "url": "Observation.ndjson",
       "count": 5539,
-      "bytes": 5631142
+      "bytes": 5837948
     }
   ],
   "error": []
